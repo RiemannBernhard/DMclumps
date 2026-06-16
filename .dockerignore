@@ -1,0 +1,26 @@
+# The build clones ROOT/GreAT/CLUMPY from upstream and copies nothing from the
+# build context, so keep the context tiny: ignore everything heavy/irrelevant.
+
+# Version control & tooling
+.git
+.gitignore
+.claude
+**/__pycache__
+*.pyc
+
+# Large scientific data and ROOT outputs (not needed inside the image)
+data/
+**/*.drawn
+**/*.root
+**/*.fits
+
+# Docs / notes / editor cruft
+*.md
+*.log
+.vscode
+.idea
+*.swp
+
+# The Dockerfile(s) themselves don't need to be in the context
+Dockerfile*
+.dockerignore
