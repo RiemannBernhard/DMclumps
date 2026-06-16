@@ -42,71 +42,76 @@ import matplotlib.pyplot as plt
 from plotnine import *
 from plotnine.data import mpg
 
-M13_B_c = SkyCoord("16h41m40.39144s +36d25m58.4880s", frame=Galactic)  # Units from string
-M13_D_c = SkyCoord("16h41m42.395232 +36d27m28.2021", frame=Galactic)  # Units from string
-M13_E_c = SkyCoord("16h41m42.0221 +36d27m34.9676", frame=Galactic)  # Units from string
-M13_F_c = SkyCoord("16h41m44.6058 +36d28m16.0034", frame=Galactic)  # Units from string
+# NOTE: the source positions below are EQUATORIAL (RA in h:m:s, Dec in d:m:s).
+# They were previously tagged `frame=Galactic`, which made astropy interpret the
+# RA hour-angle as Galactic longitude and the Dec as Galactic latitude -> the
+# resulting `.galactic` coordinates were wrong by tens of degrees. They are ICRS;
+# `.galactic` now performs the correct equatorial->Galactic transformation.
+M13_B_c = SkyCoord("16h41m40.39144s +36d25m58.4880s", frame='icrs')  # Units from string
+M13_D_c = SkyCoord("16h41m42.395232 +36d27m28.2021", frame='icrs')  # Units from string
+M13_E_c = SkyCoord("16h41m42.0221 +36d27m34.9676", frame='icrs')  # Units from string
+M13_F_c = SkyCoord("16h41m44.6058 +36d28m16.0034", frame='icrs')  # Units from string
 
-M13_A_c = SkyCoord("16h41m40.87019 +36d27m14.9788", frame=Galactic)  # Units from string
-M13_C_c = SkyCoord("16h41m41.00748 +36d27m02.7438", frame=Galactic)  # Units from string
+M13_A_c = SkyCoord("16h41m40.87019 +36d27m14.9788", frame='icrs')  # Units from string
+M13_C_c = SkyCoord("16h41m41.00748 +36d27m02.7438", frame='icrs')  # Units from string
 
-J2043_1711_c = SkyCoord("20h43m20.881730 17d11m28.91265", frame=Galactic)  # Units from string
-J1807_2459B_c = SkyCoord("18h07m20.355604 -24d59m52.9015", frame=Galactic)  # Units from string
-J1740_5340_c = SkyCoord("17h40m44.611 -53d40m41.57", frame=Galactic)  # Units from string
-J1753_2240_c = SkyCoord("17h53m39.847 -22d40m42.", frame=Galactic)  # Units from string
+J2043_1711_c = SkyCoord("20h43m20.881730 17d11m28.91265", frame='icrs')  # Units from string
+J1807_2459B_c = SkyCoord("18h07m20.355604 -24d59m52.9015", frame='icrs')  # Units from string
+J1740_5340_c = SkyCoord("17h40m44.611 -53d40m41.57", frame='icrs')  # Units from string
+J1753_2240_c = SkyCoord("17h53m39.847 -22d40m42.", frame='icrs')  # Units from string
 
-RX_J1856_3754_c = SkyCoord("18h56m35.85 -37d54m36.7", frame=Galactic)  # Units from string
-
-
-
-J1807_2500B_c = SkyCoord("18h07m20.871209 -25d00m1.915", frame=Galactic)  # Units from string
-
-KS1731_260_c= SkyCoord("17h34m13.46 -26d05m18.6", frame=Galactic)  # Units from string
-
-OAO1657_41_c= SkyCoord("17h00m48.884 -41d39m21.46", frame=Galactic)  # Units from string
+RX_J1856_3754_c = SkyCoord("18h56m35.85 -37d54m36.7", frame='icrs')  # Units from string
 
 
-XTE_J1855_026_c= SkyCoord("18h55m30.4058947392 -2d36m16.737653700", frame=Galactic)  # Units from string
 
-Cyg_X7_c= SkyCoord("20h22m00.0 40d42m00.0", frame=Galactic)  # Units from string
+J1807_2500B_c = SkyCoord("18h07m20.871209 -25d00m1.915", frame='icrs')  # Units from string
 
-V395Car_c= SkyCoord("9h22m34.6761959832 -63d17m41.355773520", frame=Galactic)  # Units from string
-V1341Cyg_c= SkyCoord("21h44m41.1544345272 38d19m17.066570988", frame=Galactic)  # Units from string
+KS1731_260_c= SkyCoord("17h34m13.46 -26d05m18.6", frame='icrs')  # Units from string
 
-LZAqr_c= SkyCoord("21h23m14.54 -5d47m52.9", frame=Galactic)  # Units from string
-
-GPVel_c= SkyCoord("9h02m06.8608812864 -40d33m16.899168060", frame=Galactic)  # Units from string
+OAO1657_41_c= SkyCoord("17h00m48.884 -41d39m21.46", frame='icrs')  # Units from string
 
 
-X_LMC_X4_c= SkyCoord("5h32m49.5556042296 -66d22m13.202721768", frame=Galactic)  # Units from string
+XTE_J1855_026_c= SkyCoord("18h55m30.4058947392 -2d36m16.737653700", frame='icrs')  # Units from string
 
-Sk160_c= SkyCoord("1h17m05.1457288392 -73d26m36.014808156", frame=Galactic)  # Units from string
-QVnor_c= SkyCoord("15h42m23.3633146128 -52d23m09.577395960", frame=Galactic)  # Units from string
-HD153919_c= SkyCoord("17h03m56.7725629224 -37d50m38.913331452", frame=Galactic)  # Units from string
+Cyg_X7_c= SkyCoord("20h22m00.0 40d42m00.0", frame='icrs')  # Units from string
 
-V691CrA_c= SkyCoord("18h25m46.8185061768 -37d06m18.529336656", frame=Galactic)  # Units from
+V395Car_c= SkyCoord("9h22m34.6761959832 -63d17m41.355773520", frame='icrs')  # Units from string
+V1341Cyg_c= SkyCoord("21h44m41.1544345272 38d19m17.066570988", frame='icrs')  # Units from string
 
-V779_Cen_c= SkyCoord("11h21m15.0920532528 -60d37m25.630264596", frame=Galactic)  # Units from
+LZAqr_c= SkyCoord("21h23m14.54 -5d47m52.9", frame='icrs')  # Units from string
 
-HZ_Her_c= SkyCoord("16h57m49.8110126616 35d20m32.486555472", frame=Galactic)  # Units from
-
-NGC675_c= SkyCoord("1h49m08.786 13d03m32.45", frame=Galactic)  # Units from
-NGC6440_c= SkyCoord("17h48m52.67 -20d21m34.5", frame=Galactic)  # Units from
-M28_c= SkyCoord("18h24m32.89 -24d52m11.4", frame=Galactic)  # Units from
+GPVel_c= SkyCoord("9h02m06.8608812864 -40d33m16.899168060", frame='icrs')  # Units from string
 
 
-wCen_c = SkyCoord("11h55m01.3260078696 -59d15m13.535219196", frame=Galactic)  # Units from string
-wCen_J2140_2311B = SkyCoord("21h40m25.2 -23d11m45", frame=Galactic)  # Units from string
+X_LMC_X4_c= SkyCoord("5h32m49.5556042296 -66d22m13.202721768", frame='icrs')  # Units from string
+
+Sk160_c= SkyCoord("1h17m05.1457288392 -73d26m36.014808156", frame='icrs')  # Units from string
+QVnor_c= SkyCoord("15h42m23.3633146128 -52d23m09.577395960", frame='icrs')  # Units from string
+HD153919_c= SkyCoord("17h03m56.7725629224 -37d50m38.913331452", frame='icrs')  # Units from string
+
+V691CrA_c= SkyCoord("18h25m46.8185061768 -37d06m18.529336656", frame='icrs')  # Units from
+
+V779_Cen_c= SkyCoord("11h21m15.0920532528 -60d37m25.630264596", frame='icrs')  # Units from
+
+HZ_Her_c= SkyCoord("16h57m49.8110126616 35d20m32.486555472", frame='icrs')  # Units from
+
+NGC675_c= SkyCoord("1h49m08.786 13d03m32.45", frame='icrs')  # Units from
+NGC6440_c= SkyCoord("17h48m52.67 -20d21m34.5", frame='icrs')  # Units from
+M28_c= SkyCoord("18h24m32.89 -24d52m11.4", frame='icrs')  # Units from
 
 
-J1640_2224c = SkyCoord("16h40m16.745069  +22d24m08.82406", frame=Galactic)  # Units from
-J2017_0603c = SkyCoord("20h17m22.705223  +06d03m05.56393", frame=Galactic)  # Units from
-J2043_1711c = SkyCoord("20h43m20.8813524 +17d11m28.89999 ", frame=Galactic)  # Units from
-J2302_4442c = SkyCoord("23h02m46.978387  +44d42m22.08051", frame=Galactic)  # Units from
-J2317_1439c = SkyCoord("23h17m09.236381  +14d39m31.26102", frame=Galactic)  # Units from
+wCen_c = SkyCoord("11h55m01.3260078696 -59d15m13.535219196", frame='icrs')  # Units from string
+wCen_J2140_2311B = SkyCoord("21h40m25.2 -23d11m45", frame='icrs')  # Units from string
 
 
-J1750_37A_NGC6441A_c = SkyCoord("17h50m13.8016 -37d03m10.95", frame=Galactic)  # Units from
+J1640_2224c = SkyCoord("16h40m16.745069  +22d24m08.82406", frame='icrs')  # Units from
+J2017_0603c = SkyCoord("20h17m22.705223  +06d03m05.56393", frame='icrs')  # Units from
+J2043_1711c = SkyCoord("20h43m20.8813524 +17d11m28.89999 ", frame='icrs')  # Units from
+J2302_4442c = SkyCoord("23h02m46.978387  +44d42m22.08051", frame='icrs')  # Units from
+J2317_1439c = SkyCoord("23h17m09.236381  +14d39m31.26102", frame='icrs')  # Units from
+
+
+J1750_37A_NGC6441A_c = SkyCoord("17h50m13.8016 -37d03m10.95", frame='icrs')  # Units from
 print("J1750_37A_NGC6441A_c:",J1750_37A_NGC6441A_c)
 
 
@@ -121,16 +126,16 @@ J1750_37A_NGC6441A_cc= SkyCoord(ra=267.5575067	*u.degree,  dec=-37.05304167*u.de
 
 
 
-J1537_5312 = SkyCoord("15h37m37.69466  -53d12m25.057", frame=Galactic)  # Units from
-J1547_5709 = SkyCoord("15h47m24.1248   -57d09m17.5699", frame=Galactic)  # Units from
-J1618_4624 = SkyCoord("16h18m52.77579  -46d24m34.950", frame=Galactic)  # Units from
-J1727_2951 = SkyCoord("17h27m00.402    -29d51m40.8", frame=Galactic)  # Units from
+J1537_5312 = SkyCoord("15h37m37.69466  -53d12m25.057", frame='icrs')  # Units from
+J1547_5709 = SkyCoord("15h47m24.1248   -57d09m17.5699", frame='icrs')  # Units from
+J1618_4624 = SkyCoord("16h18m52.77579  -46d24m34.950", frame='icrs')  # Units from
+J1727_2951 = SkyCoord("17h27m00.402    -29d51m40.8", frame='icrs')  # Units from
 
 
-J1755_25   = SkyCoord("17h55m6.0      -25d53m0",      frame=Galactic)  # Units from
-J1244_6359 = SkyCoord("12h44m47.693   -63d59m47.4",   frame=Galactic)  # Units from
-J1101_6424 = SkyCoord("11h01m37.1923  -64d24m39.332", frame=Galactic)  # Units from
-J1614_2230 = SkyCoord("16h14m36.5051  -22d30m31.081", frame=Galactic)  # Units from
+J1755_25   = SkyCoord("17h55m6.0      -25d53m0",      frame='icrs')  # Units from
+J1244_6359 = SkyCoord("12h44m47.693   -63d59m47.4",   frame='icrs')  # Units from
+J1101_6424 = SkyCoord("11h01m37.1923  -64d24m39.332", frame='icrs')  # Units from
+J1614_2230 = SkyCoord("16h14m36.5051  -22d30m31.081", frame='icrs')  # Units from
 
 
 print("J1750_37A_NGC6441A_cc:",J1750_37A_NGC6441A_cc.galactic)
