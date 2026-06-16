@@ -4,6 +4,7 @@
 
 #include <cstdio>
 #include <string>
+#include <vector>
 #include <math.h>
 
 #include <algorithm>
@@ -12,8 +13,12 @@
 #include "TH1D.h"
 #include "TCanvas.h"
 #include "TTree.h"
+#include "TNamed.h"
 
-#include "/home/blessed/Documents/_HistogramScripts/DAMPE/draw_plots/include/MyUtility_func.h"
+// NOTE: the converter is self-contained (rho_DM/accreted_mass/accreted_rate and
+// draw_fits are defined below). The previous personal header include
+//   #include "/home/blessed/.../MyUtility_func.h"
+// was unused and made the macro non-portable, so it has been removed.
 
 #define PI              3.14159265359
 
@@ -32,9 +37,10 @@ const Int_t YAxis_SetNdivisions   = 10+100*6;
 
 typedef struct {float l,beta, dist;} GALAC_COORD;
 
-void  draw_fits(const char *file, 
-                bool Xaxis_LOGSCALE, 
-                bool Yaxis_LOGSCALE, 
+void  draw_fits(const char *file,
+                const char *output_fname,
+                bool Xaxis_LOGSCALE,
+                bool Yaxis_LOGSCALE,
                 Float_t xMin_l,Float_t xMax_l,
                 Float_t yMin_l,Float_t yMax_l,
                 char *fileNameSuff);
@@ -106,132 +112,55 @@ int FLAG=1;
 //int FLAG=2;//for rs outputanalysis
 
 
-void convert_clumpy_draw_to_root(){
-  
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed666_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed1234_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed2241_maxNSubclumps50_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed2233_minSubClumpM_m07_maxSubClumpM_01_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed2131_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed2131_maxNSubclumps300_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed2131_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM500GeV_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed3333_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed3333_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM500GeV_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed1332_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed1332_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM500GeV_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed1335_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM500GeV_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed1335_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed5550_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM500GeV_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed5550_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed5440_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed5440_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM500GeV_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed1010_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed1010_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM500GeV_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed1088_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed1088_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM500GeV_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed5188_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_nClumps300_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed5188_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM500GeV_nClumps300_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed7788_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_nClumps300_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed7788_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM500GeV_nClumps300_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed9111_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_nClumps300_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed9111_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM500GeV_nClumps300_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed7061_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_nClumps300_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed7061_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM500GeV_nClumps300_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed9083_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_nClumps300_massive_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed9083_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM500GeV_nClumps300_massive_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed4444_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_nClumps300_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed4444_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM500GeV_nClumps300_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed3120_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_nClumps300_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed3120_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM500GeV_nClumps300_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed4446_minSubClumpM_m08_MmaxFrac_0.2_minNClumps10_mDM100GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed4446_minSubClumpM_m08_MmaxFrac_0.2_minNClumps10_mDM500GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed4448_minSubClumpM_m03_MmaxFrac_0.2_minNClumps10_mDM100GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed4448_minSubClumpM_m03_MmaxFrac_0.2_minNClumps10_mDM500GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed4450_minSubClumpM_m04_MmaxFrac_0.6_minNClumps10_mDM100GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed4450_minSubClumpM_m04_MmaxFrac_0.6_minNClumps10_mDM500GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed4452_minSubClumpM_m04_MmaxFrac_0.5_minNClumps10_mDM100GeV_nClumps400_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed4452_minSubClumpM_m04_MmaxFrac_0.5_minNClumps10_mDM500GeV_nClumps400_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
+// Convert a single CLUMPY ".drawn" clump catalogue into a ROOT TTree.
+//
+//   root -l -b -q 'convert_clumpy_draw_to_root.C("input.drawn","output.root")'
+//
+// If output_root is empty the output name is derived from the input by
+// replacing the directory/extension with "ntuple_<basename>.root" next to it.
+void convert_clumpy_draw_to_root(const char *input_drawn = "",
+                                 const char *output_root = ""){
 
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed4456_minSubClumpM_m07_MmaxFrac_0.6_minNClumps11_mDM100GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed4457_minSubClumpM_m08_MmaxFrac_0.4_minNClumps11_mDM100GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed4457_minSubClumpM_m08_MmaxFrac_0.4_minNClumps11_mDM500GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed4459_minSubClumpM_m08_MmaxFrac_0.4_minNClumps11_mDM100GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed4459_minSubClumpM_m08_MmaxFrac_0.4_minNClumps11_mDM500GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed4462_minSubClumpM_m08_MmaxFrac_0.45_minNClumps11_mDM500GeV_nClumps400_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    //draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed4465_minSubClumpM_m07_MmaxFrac_0.35_minNClumps11_mDM500GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
-    draw_fits("/mnt/dampe_data/CLUMPY/output/annihil_seed4465_minSubClumpM_m07_MmaxFrac_0.35_minNClumps11_mDM100GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.drawn",
+    std::string in = input_drawn;
+    if (in.empty()){
+      std::cerr << "Usage: convert_clumpy_draw_to_root(\"input.drawn\", "
+                << "\"output.root\")" << std::endl;
+      return;
+    }
+
+    // Derive a default output name from the input basename if none was given.
+    std::string out = output_root;
+    if (out.empty()){
+      std::string base = in;
+      size_t slash = base.find_last_of("/");
+      if (slash != std::string::npos) base = base.substr(slash + 1);
+      size_t dot = base.find_last_of(".");
+      if (dot != std::string::npos) base = base.substr(0, dot);
+      std::string dir = (slash != std::string::npos) ? in.substr(0, slash + 1) : "";
+      out = dir + "ntuple_" + base + ".root";
+    }
+
+    draw_fits(in.c_str(), out.c_str(),
               false, false,
               0, 2.5,
               0, 300,
-              //(char*)"clumpy_annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside1024");
-              (char*)"clumpy_annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048");
-              //(char*)"clumpy_annihil_rs01_seed666_gamma052D_FOV8deg_nside512");
+              (char*)"clumpy_annihil_gal2D");
 }
 
-void draw_fits(const char *file, 
-               bool Xaxis_LOGSCALE, 
-               bool Yaxis_LOGSCALE, 
+void draw_fits(const char *file,
+               const char *output_fname,
+               bool Xaxis_LOGSCALE,
+               bool Yaxis_LOGSCALE,
                Float_t xMin_l,Float_t xMax_l,
                Float_t yMin_l,Float_t yMax_l,
                char *fileNameSuff)
 {
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed2245_maxNSubclumps150_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048__.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed1234_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048__.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed666_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048__.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seedBaobab_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048__.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed2241_maxNSubclumps50_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048__.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed2233_minSubClumpM_m07_maxSubClumpM01_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048__.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed2131_minSubClumpM_m07_maxSubClumpM01_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048__.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed2131_maxNSubclumps300_minSubClumpM_m07_maxSubClumpM01_mDM500GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048__.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed3333_maxNSubclumps200_minSubClumpM_m07_maxSubClumpM01_mDM100GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048__.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed3333_maxNSubclumps200_minSubClumpM_m07_maxSubClumpM01_mDM500GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048__.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed1332_maxNSubclumps200_minSubClumpM_m07_maxSubClumpM01_mDM100GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048__.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed1332_maxNSubclumps200_minSubClumpM_m07_maxSubClumpM01_mDM500GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048__.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed1335_maxNSubclumps200_minSubClumpM_m07_maxSubClumpM01_mDM100GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048__.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed1335_maxNSubclumps200_minSubClumpM_m07_maxSubClumpM01_mDM500GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048__.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed5550_maxNSubclumps200_minSubClumpM_m07_maxSubClumpM01_mDM100GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048__.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed5440_maxNSubclumps200_minSubClumpM_m07_maxSubClumpM01_mDM100GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed5440_maxNSubclumps200_minSubClumpM_m07_maxSubClumpM01_mDM500GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed1010_maxNSubclumps200_minSubClumpM_m07_maxSubClumpM01_mDM100GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed1010_maxNSubclumps200_minSubClumpM_m07_maxSubClumpM01_mDM500GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed5550_maxNSubclumps200_minSubClumpM_m07_maxSubClumpM01_mDM500GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048__.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_ZHAO_rs01_seed666_gamma052D_FOV8deg_nside512.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed1088_maxNSubclumps200_minSubClumpM_m07_maxSubClumpM01_mDM100GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed1088_maxNSubclumps200_minSubClumpM_m07_maxSubClumpM01_mDM500GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed5188_maxNSubclumps300_minSubClumpM_m07_maxSubClumpM01_mDM100GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed5188_maxNSubclumps300_minSubClumpM_m07_maxSubClumpM01_mDM500GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed7788_maxNSubclumps300_minSubClumpM_m07_maxSubClumpM01_mDM100GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed7788_maxNSubclumps300_minSubClumpM_m07_maxSubClumpM01_mDM500GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed9111_maxNSubclumps300_minSubClumpM_m07_maxSubClumpM01_mDM100GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed9111_maxNSubclumps300_minSubClumpM_m07_maxSubClumpM01_mDM500GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed7061_maxNSubclumps300_minSubClumpM_m07_maxSubClumpM01_mDM100GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed7061_maxNSubclumps300_minSubClumpM_m07_maxSubClumpM01_mDM500GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed9083_maxNSubclumps300_minSubClumpM_m07_maxSubClumpM01_mDM100GeV_massive_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed9083_maxNSubclumps300_minSubClumpM_m07_maxSubClumpM01_mDM500GeV_massive_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed4444_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_nClumps300_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed4444_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM500GeV_nClumps300_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed3120_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_nClumps300_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed3120_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM500GeV_nClumps300_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed4446_minSubClumpM_m08_MmaxFrac_02_minNClumps10_mDM100GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed4446_minSubClumpM_m08_MmaxFrac_02_minNClumps10_mDM500GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed4448_minSubClumpM_m03_MmaxFrac_0.2_minNClumps10_mDM100GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed4448_minSubClumpM_m03_MmaxFrac_0.2_minNClumps10_mDM500GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed4450_minSubClumpM_m04_MmaxFrac_0.6_minNClumps10_mDM100GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed4450_minSubClumpM_m04_MmaxFrac_0.6_minNClumps10_mDM500GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed4452_minSubClumpM_m04_MmaxFrac_0.5_minNClumps10_mDM100GeV_nClumps400_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed4452_minSubClumpM_m04_MmaxFrac_0.5_minNClumps10_mDM500GeV_nClumps400_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
-
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed4456_minSubClumpM_m07_MmaxFrac_0.6_minNClumps11_mDM100GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed4457_minSubClumpM_m08_MmaxFrac_0.4_minNClumps11_mDM100GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed4457_minSubClumpM_m08_MmaxFrac_0.4_minNClumps11_mDM500GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed4459_minSubClumpM_m08_MmaxFrac_0.4_minNClumps11_mDM100GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed4459_minSubClumpM_m08_MmaxFrac_0.4_minNClumps11_mDM500GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
-
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed4462_minSubClumpM_m08_MmaxFrac_0.45_minNClumps11_mDM500GeV_nClumps400_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
-    //const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed4465_minSubClumpM_m07_MmaxFrac_0.35_minNClumps11_mDM500GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
-    const char *output_fname = (char*)"/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/ntuple_annihil_seed4465_minSubClumpM_m07_MmaxFrac_0.35_minNClumps11_mDM100GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root";
 
     TFile *file_output = new TFile (output_fname,"RECREATE");
+
+    // Store provenance so the ROOT file is self-describing (which .drawn it came from).
+    TNamed("clumpy_source_drawn", file).Write();
+    TNamed("clumpy_Jfactor_aperture", "J integrated in 0.0299 deg aperture").Write();
 
    float mGlong=0;
    float mGlat=0;
@@ -252,6 +181,12 @@ void draw_fits(const char *file,
    float mRs=0;
    float m_alphaS=0;
    float m_log10_alphaS=0;
+
+   // On-sky angular radii of the clump (degrees), needed for pulsar cross-matching.
+   // alpha_S above is the *scale-radius* angle (rs/d) and badly under-estimates the
+   // physical footprint; these use the truncation / overdensity radii instead.
+   float m_AngRtidal_deg=0;
+   float m_AngRdelta_deg=0;
 
 
    float mParam1=0;
@@ -334,6 +269,8 @@ void draw_fits(const char *file,
   mTree->Branch("z",                          &mZ,              "mZ/F");
   mTree->Branch("alpha_S_deg",                &m_alphaS,        "m_alphaS/F");
   mTree->Branch("log10_alpha_S_deg",          &m_log10_alphaS,  "m_log10_alphaS/F");
+  mTree->Branch("AngRtidal_deg",              &m_AngRtidal_deg, "m_AngRtidal_deg/F");
+  mTree->Branch("AngRdelta_deg",              &m_AngRdelta_deg, "m_AngRdelta_deg/F");
 
   mTree->Branch("DMprof_rhoDM_coarse_Msolkpc3", &mRhoDM_v0,       "mRhoDM_v0/F");
   mTree->Branch("DMprof_rhoDM_coarse_GeVcm3",   &mRhoDM_v1,       "mRhoDM_v1/F");
@@ -409,6 +346,18 @@ void draw_fits(const char *file,
   mTree->Branch("DM_Mtidal_Mhalo",            &mMtidalMhalo,    "mMtidalMhalo/F");
   mTree->Branch("DM_Meqdens_Mhalo",           &mMeqdensMhalo,   "mMeqdensMhalo/F");
 
+
+  // ---- Diagnostics (~100 TProfile/TH2) go into a SEPARATE ROOT file so the
+  //      science TTree file stays lean. ROOT associates each new histogram with
+  //      the current directory, so every object created from here on is owned by
+  //      file_diag; mTree was created earlier and stays in file_output.
+  std::string diag_fname = output_fname;
+  {
+    size_t dot = diag_fname.find_last_of(".");
+    if (dot != std::string::npos) diag_fname = diag_fname.substr(0, dot);
+    diag_fname += "_diagnostics.root";
+  }
+  TFile *file_diag = new TFile(diag_fname.c_str(), "RECREATE");
 
   TProfile *prf_r_Macc               = new TProfile ("prf_r_Macc",           ";radius [kpc];#LT M_{acc} #GT [M_{sun}]",             10000, 1e-4, 1e2, 1e-10, 1e10);
   TProfile *prf_r00001_rhoDM_Macc    = new TProfile ("prf_r00001_rhoDM_Macc", ";#rho_{DM} [GeV/cm3];#LT M_{acc} #GT [M_{sun}]",     10000, 1e-4, 1e9, 1e-10, 1e10);
@@ -839,213 +788,88 @@ void draw_fits(const char *file,
   string dummy;
 
 
- // Import data from a file.
-  std::ifstream ifstr(file, std::ifstream::in);
-  if (ifstr.fail()) {
+ // Import data from a file (single open). The catalogue is one clump per
+ // non-comment line, whitespace-separated, with a fixed 21-column layout.
+  std::ifstream energy_dat(file, std::ifstream::in);
+  if (energy_dat.fail()) {
     std::cerr << "\n Could not open " << file << "\n\n";
     return;
   }
-  else {
-     std::cout << "File is successfully opened.\n" << std::endl;
-     //cout << "ifstream.rdbuf  = " << ifstr.rdbuf()   << endl;
-     std::cout << "ifstream.get    = " << ifstr.get()   << std::endl;
-  }
+  std::cout << "File '" << file << "' opened successfully.\n" << std::endl;
 
   Int_t counter = 0;
-
   std::string line;
-  ifstream energy_dat;
-  energy_dat.open(file);
-  std::string parsed;
-  std::stringstream input_stringstream;
 
-/**/
+  // CLUMPY .drawn column layout (0-based), from the file header:
+  //  0:ID 1:Type 2:long[deg] 3:lat[deg] 4:d[kpc] 5:z 6:Rdelta[kpc]
+  //  7:rhos[Msol/kpc3] 8:rs[kpc] 9:prof 10:#1 11:#2 12:#3
+  //  13:J(0.0299deg)[GeV2/cm5] 14:J/Jcont 15:Mdelta 16:Mtid 17:Rtid
+  //  18:Mequdens 19:Requdens 20:Dgal
+  const size_t NCOL_MIN = 21;
+
   while (getline(energy_dat, line)) {
-        getline(energy_dat, line);
-        input_stringstream << line;
 
+        // Skip comment/header and blank lines; every other line is one clump.
+        if (line.empty() || line[0] == '#') continue;
 
-        std::stringstream ss(line);
-        std::cout << "line# " << counter    << std::endl;
-        std::cout << "ss: " << line << std::endl;
-        std::cout << "length: = " << line.length()    << std::endl;
+        // Tokenise on whitespace (robust to padding / field-width changes,
+        // unlike the previous fixed line-length + positional getline scheme).
+        std::vector<std::string> tok;
+        {
+          std::stringstream ss(line);
+          std::string t;
+          while (ss >> t) tok.push_back(t);
+        }
+        if (tok.size() < NCOL_MIN) {
+          std::cerr << "Skipping malformed line (" << tok.size()
+                    << " cols, need " << NCOL_MIN << "): " << line << std::endl;
+          continue;
+        }
 
-        //if (counter>3 && line.length() < 184){
-        if (counter>1){
-          //break;
+        // Reset every branch value so a clump never inherits the previous one's
+        // value when a guard below fails (fixes stale carry-over).
+        mGlong=0; mGlat=0; mDist=0; mDgal=0; mDMclumpID=0;
+        mZ=0; mRdelta=0;
+        mRhoDM_v0=0; mRhoDM_v1=0; mRhoDM_v00=0; mRhoDM_v11=0; mRhoDM=0;
+        mRhos=0; mRhos2=0; mRs=0;
+        m_alphaS=0; m_log10_alphaS=0; m_AngRtidal_deg=0; m_AngRdelta_deg=0;
+        mParam1=0; mParam2=0; mParam3=0;
+        mJfactor=0; mJJcont=0; m_log10Jfactor=0; m_log10JJcont=0;
+        mMdelta=0; mMtidal=0; mRtidal=0; mMequdens=0; mRequdens=0;
+        mRtid_rS=0; mReq_rS=0; mRdelta_rS=0; mDist_rS=0; mDgal_rS=0;
+        mMdelta_tidal=0; mMdelta_eqdens=0; mMtidalMhalo=0; mMeqdensMhalo=0;
+        mRvirial_rS=0; mDELTA=0; mCdelta=0;
+        clump_location.l=0; clump_location.beta=0; clump_location.dist=0;
 
-          if (line.length() > 184 || line.length() < 170)
-            continue;
+        // Map columns to fields by index.
+        DMclumID      = tok[0];
+        DMtype        = tok[1];
+        Glong         = tok[2];
+        Glat          = tok[3];
+        DM_clump_dist = tok[4];
+        z             = tok[5];
+        Rdelta        = tok[6];
+        rhos          = tok[7];
+        rs            = tok[8];
+        DMprof        = tok[9];
+        DMprof_p1     = tok[10];
+        DMprof_p2     = tok[11];
+        DMprof_p3     = tok[12];
+        DM_J          = tok[13];
+        DM_JJcont     = tok[14];
+        Mdelta        = tok[15];
+        Mtid          = tok[16];
+        Rtid          = tok[17];
+        Mequdens      = tok[18];
+        Requdens      = tok[19];
+        Dgal          = tok[20];
 
-          if (counter>50000 && counter<500001){
-          //if (counter>50000){
-                //std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-
-                std::getline(ss,DMclumID,' ');   //std::cout << "DMclumID: " << DMclumID << " --> length:" << DMclumID.length()  << std::endl;
-                if (DMclumID.length() == 0){
-                  std::getline(ss,DMclumID,' ');      //std::cout << "Glong: " << Glong << " --> length:" << Glong.length()  << std::endl;
-                  if (DMclumID.length() == 0){
-                    std::getline(ss,DMclumID,' ');      //std::cout << "Glong: " << Glong << " --> length:" << Glong.length()  << std::endl;
-                    if (DMclumID.length() == 0){
-                       std::getline(ss,DMclumID,' ');      //std::cout << "Glong: " << Glong << " --> length:" << Glong.length()  << std::endl;
-
-                        if (DMclumID.length() == 0){
-                           std::getline(ss,DMclumID,' ');      //std::cout << "Glong: " << Glong << " --> length:" << Glong.length()  << std::endl;
-                    }
-                  }
-                 }
-                }
-          }
-          else if (counter>500000){
-                //std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                //std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-
-                std::getline(ss,DMclumID,' ');   //std::cout << "DMclumID: " << DMclumID << " --> length:" << DMclumID.length()  << std::endl;
-                if (DMclumID.length() == 0){
-                  std::getline(ss,DMclumID,' ');      //std::cout << "Glong: " << Glong << " --> length:" << Glong.length()  << std::endl;
-                  if (DMclumID.length() == 0){
-                    std::getline(ss,DMclumID,' ');      //std::cout << "Glong: " << Glong << " --> length:" << Glong.length()  << std::endl;
-                    if (DMclumID.length() == 0){
-                       std::getline(ss,DMclumID,' ');      //std::cout << "Glong: " << Glong << " --> length:" << Glong.length()  << std::endl;
-
-                        if (DMclumID.length() == 0){
-                           std::getline(ss,DMclumID,' ');      //std::cout << "Glong: " << Glong << " --> length:" << Glong.length()  << std::endl;
-                    }
-                  }
-                 }
-                }
-          }
-          else{
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-
-                std::getline(ss,DMclumID,' ');   //std::cout << "DMclumID: " << DMclumID << " --> length:" << DMclumID.length()  << std::endl;
-                if (DMclumID.length() == 0){
-                  std::getline(ss,DMclumID,' ');      //std::cout << "Glong: " << Glong << " --> length:" << Glong.length()  << std::endl;
-                  if (DMclumID.length() == 0){
-                    std::getline(ss,DMclumID,' ');      //std::cout << "Glong: " << Glong << " --> length:" << Glong.length()  << std::endl;
-                    if (DMclumID.length() == 0){
-                       std::getline(ss,DMclumID,' ');      //std::cout << "Glong: " << Glong << " --> length:" << Glong.length()  << std::endl;
-
-                        if (DMclumID.length() == 0){
-                           std::getline(ss,DMclumID,' ');      //std::cout << "Glong: " << Glong << " --> length:" << Glong.length()  << std::endl;
-
-                        if (DMclumID.length() == 0){
-                           std::getline(ss,DMclumID,' ');      //std::cout << "Glong: " << Glong << " --> length:" << Glong.length()  << std::endl;
-
-                        }
-                    }
-                  }
-                 }
-                }
-
-            }
-                if (DMclumID.length() == 0)
-                  continue;
-
-                std::cout << "DMclumID: " << DMclumID << "  length:" << DMclumID.length() << std::endl;
-
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,DMtype,' ');     std::cout << "DMtype: " << DMtype << " --> length:" << DMtype.length()  << std::endl;
-
-                //std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << " --> length:" << dummy.length()  << std::endl;
-                std::getline(ss,Glong,' ');      //std::cout << "Glong: " << Glong << " --> length:" << Glong.length()  << std::endl;
-                if (Glong.length() == 0){
-                  std::getline(ss,Glong,' ');      //std::cout << "Glong: " << Glong << " --> length:" << Glong.length()  << std::endl;
-                  if (Glong.length() == 0){
-                    std::getline(ss,Glong,' ');      //std::cout << "Glong: " << Glong << " --> length:" << Glong.length()  << std::endl;
-                    if (Glong.length() == 0)
-                       std::getline(ss,Glong,' ');      //std::cout << "Glong: " << Glong << " --> length:" << Glong.length()  << std::endl;
-                  }
-
-                }
-                std::cout << "Glong: " << Glong << std::endl;
-
-
-
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << " --> length:" << dummy.length()  << std::endl;
-
-                std::getline(ss,Glat,' ');      //std::cout << "Glat: " << Glat << " --> length:" << Glat.length()  << std::endl;
-                if (Glat.length() == 0){
-                  std::getline(ss,Glat,' ');      //std::cout << "Glat: " << Glat << " --> length:" << Glat.length()  << std::endl;
-
-                  if (Glat.length() == 0)
-                    std::getline(ss,Glat,' ');      //std::cout << "Glat: " << Glat << " --> length:" << Glat.length()  << std::endl;
-                }
-                std::cout << "Glat: " << Glat  << std::endl;
-
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,DM_clump_dist,' ');     //std::cout << "DM_clump_dist: " << DM_clump_dist  << std::endl;
-                //std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,z,' ');     //std::cout << "z: " << z  << std::endl;
-                //std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,Rdelta,' ');     //std::cout << "Rdelta: " << Rdelta  << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,rhos,' ');       //std::cout << "rhos: " << rhos  << std::endl;
-                std::getline(ss,rs,' ');         //std::cout << "rs: " << rs  << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,DMprof,' ');     //std::cout << "DMprof: " << DMprof  << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,DMprof_p1,' ');   //std::cout << "p1: " << DMprof_p1  << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,DMprof_p2,' ');   //std::cout << "p2: " << DMprof_p2  << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,DMprof_p3,' ');   //std::cout << "p3: " << DMprof_p3  << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,DM_J,' ');        //std::cout << "J: " << DM_J  << std::endl;
-                std::getline(ss,DM_JJcont,' ');   //std::cout << "JJcont: " << DM_JJcont  << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                std::getline(ss,Mdelta,' ');     //std::cout << "Mdelta: " << Mdelta  << std::endl;
-
-                if (FLAG==1){
-                  std::getline(ss,Mtid,' ');       //std::cout << "Mtid: " << Mtid  << std::endl;
-                  std::getline(ss,Rtid,' ');       //std::cout << "Rtid: " << Rtid  << std::endl;
-                  std::getline(ss,Mequdens,' ');   //std::cout << "Mequdens: " << Mequdens  << std::endl;
-                  std::getline(ss,Requdens,' ');   //std::cout << "Requdens: " << Requdens  << std::endl;
-                  std::getline(ss,Dgal,' ');       //std::cout << "Dgal: " << Dgal  << std::endl;
-                }
-                if (FLAG==2){
-                  std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                  std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                  std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                  std::getline(ss,Glong_wrtHaloCenter,' ');       //std::cout << "Mtid: " << Mtid  << std::endl;
-                  std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                  std::getline(ss,dummy,' ');      //std::cout << "dummy: " << dummy << std::endl;
-                  std::getline(ss,Glat_wrtHaloCenter,' ');       //std::cout << "Rtid: " << Rtid  << std::endl;
-                }
-                std::cout << "Glong (w.r.t. haloCenter): " << Glong_wrtHaloCenter  << std::endl;
-                std::cout << "Glat (w.r.t. haloCenter): " << Glat_wrtHaloCenter  << std::endl;
-
-                int dm_ID      = std::atoi(DMclumID.c_str());
-                //float dm_glong = std::stof(Glong);
-                //float dm_glat  = std::stof(Glat);
-                //float dm_dist  = std::stof(DM_clump_dist);
-
-                mDMclumpID          = dm_ID;
-                clump_location.l    = std::stof(Glat);
-                clump_location.beta = std::stof(Glong);
+                mDMclumpID          = std::atoi(DMclumID.c_str());
+                // Galactic coords: l = longitude, beta = latitude
+                // (these two were swapped in the previous version).
+                clump_location.l    = std::stof(Glong);
+                clump_location.beta = std::stof(Glat);
                 clump_location.dist = std::stof(DM_clump_dist);
-
-                //if (std::stof(Glong) < 200 && std::stof(Glong) < -200)
-                //if (Glong.length() != 0)
 
                 if (std::abs(std::stof(Glong))<1000)
                   mGlong = (double)std::stof(Glong);
@@ -1074,9 +898,29 @@ void draw_fits(const char *file,
                 if (rs.length() != 0)
                   mRs     = (double)std::stof(rs);
 
-                m_alphaS = std::asin(mRs/mDist);
-                if (std::asin(mRs/mDist) > 0.)
-                  m_log10_alphaS = std::log10(std::asin(mRs/mDist));
+                // alpha_S: the scale-radius angle asin(rs/d), now genuinely in
+                // DEGREES (the branch is named *_deg). NB rs is the Einasto scale
+                // radius and is far smaller than the clump's footprint -- for
+                // pulsar cross-matching use AngRtidal_deg / AngRdelta_deg below.
+                if (mDist > 0 && mRs > 0 && mRs < mDist){
+                  m_alphaS = std::asin(mRs/mDist) * 180.0/PI;
+                  if (m_alphaS > 0.)
+                    m_log10_alphaS = std::log10(m_alphaS);
+                }
+
+                // True on-sky angular radii (degrees) from the truncation
+                // (tidal) and overdensity (Delta) radii: theta = asin(R/d).
+                // These define the matching tolerance for "is a pulsar inside
+                // this clump?" projected on the sky.
+                {
+                  float angd = std::stof(DM_clump_dist);
+                  if (angd > 0){
+                    float rtid = std::stof(Rtid);
+                    float rdel = std::stof(Rdelta);
+                    if (rtid > 0 && rtid < angd) m_AngRtidal_deg = std::asin(rtid/angd) * 180.0/PI;
+                    if (rdel > 0 && rdel < angd) m_AngRdelta_deg = std::asin(rdel/angd) * 180.0/PI;
+                  }
+                }
 
 
                 //float dm_z      = std::stof(z);
@@ -1657,19 +1501,21 @@ void draw_fits(const char *file,
                 prf2d_Mequdens_dgal_JJ       -> Fill (mMequdens, mDgal, mJJcont);
                 prf2d_Mequdens_dgal_Glong    -> Fill (mMequdens, mDgal, mGlong);
                 prf2d_Mequdens_dgal_Glat     -> Fill (mMequdens, mDgal, mGlat);
-        }
-
 
       counter++;
-      mTree -> Fill(); //Fill the tree. For each event==line
+      mTree -> Fill(); // Fill the tree once per successfully parsed clump.
   }
 
 
 
-    file_output->Write(); // Save all objects in this file
-    file_output->Close(); // Close the file. Note that this is automatically done when you leave
-    printf("Output file was closed \n");
+    file_output->cd();
+    file_output->Write();  // science TTree + provenance TNamed
+    file_diag->cd();
+    file_diag->Write();    // diagnostic profiles / 2D histograms
 
-    //return 0;
+    file_output->Close();
+    file_diag->Close();
+    printf("Wrote science file '%s' and diagnostics '%s'\n",
+           output_fname, diag_fname.c_str());
 }
 
