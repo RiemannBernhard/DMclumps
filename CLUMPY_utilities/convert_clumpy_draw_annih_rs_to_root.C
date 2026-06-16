@@ -1,3 +1,20 @@
+// =============================================================================
+// WARNING / TODO -- this is the FLAG=2 "rs / halo-centre" variant of the
+// converter. It still contains the same critical bugs that were fixed in
+// convert_clumpy_draw_to_root.C, namely:
+//   * every-other-line drop: `while(getline(...)) { getline(...); ... }`
+//     parses only half the clumps (see ~line 417-418);
+//   * mTree->Fill() runs outside the parse guard -> junk/default rows;
+//   * branch locals are not reset per line -> stale carry-over;
+//   * fixed line-length filter + counter-based token skipping (brittle);
+//   * the packed `Clump` struct stores l/b swapped.
+// It was NOT rewritten here because it expects a DIFFERENT .drawn column layout
+// (with longitude/latitude w.r.t. the halo centre) that is not present among the
+// committed raw files, and could not be compile-tested in this environment.
+// Before using it, port the whitespace-tokeniser + per-line reset + single
+// getline + degrees-correct angular radii from convert_clumpy_draw_to_root.C,
+// adjusting the column indices for this format, and verify against real input.
+// =============================================================================
 #include <iostream>     // std::cout
 #include <fstream>      // std::ifstream
 #include <sstream>
