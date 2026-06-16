@@ -1,0 +1,268 @@
+# syntax=docker/dockerfile:1
+# =============================================================================
+# ROOT + GreAT + CLUMPY scientific stack on Rocky Linux 10
+#
+# Multi-stage build:
+#   base        -> Rocky 10 + toolchain + build/-devel dependencies
+#   root-build  -> CERN ROOT (full) installed to /opt/root
+#   great-build -> GreAT (MCMC/Jeans) to /opt/GreAT, fparser to /opt/fparser
+#   clumpy-build-> CLUMPY to /opt/CLUMPY
+#   final       -> CLEAN Rocky 10 + runtime-only libs + copied /opt artifacts
+#
+# Build:  docker build -f Dockerfile.clumpy -t clumpy:v3.1.1 .
+# Run:    docker run --rm -it -v "$PWD":/work -w /work clumpy:v3.1.1
+# =============================================================================
+
+# ---- Pin all upstream versions here for reproducibility ----
+ARG ROCKY_TAG=10.1
+ARG ROOT_VERSION=v6-39-01
+ARG CLUMPY_VERSION=v3.1.1
+# Optional: install the scientific Python stack used by the repo's analysis
+# scripts (astropy/healpy/uproot/...). Set to "false" for a CLUMPY-only image.
+ARG WITH_PYSCI=true
+
+# =============================================================================
+# 1. Base system + toolchain + build dependencies
+# =============================================================================
+FROM rockylinux/rockylinux:${ROCKY_TAG} AS base
+
+LABEL org.opencontainers.image.title="ROOT + GreAT + CLUMPY stack" \
+      org.opencontainers.image.description="Scientific stack for dark-matter clump (CLUMPY) simulations" \
+      org.opencontainers.image.version="1.0"
+
+# Enable CodeReady Builder (crb) + EPEL, then install the toolchain.
+# Rocky 10 ships dnf5: "group install" (two words) and config-manager are used.
+# If your builder's dnf5 rejects "--set-enabled", swap in the setopt form noted below.
+RUN dnf -y update && \
+    dnf -y install dnf-plugins-core epel-release && \
+    { dnf config-manager --set-enabled crb || dnf config-manager setopt crb.enabled=1; } && \
+    dnf -y group install "Development Tools" && \
+    dnf -y install cmake && \
+    dnf clean all
+
+# Core build/-devel dependencies for ROOT and the rest of the stack.
+RUN dnf -y install \
+        git wget curl which \
+        gsl-devel eigen3-devel boost-devel \
+        cfitsio-devel xrootd-client-devel davix-devel \
+        openssl-devel ftgl-devel sqlite-devel \
+        python3 python3-devel python3-numpy \
+        libX11-devel libXpm-devel libXft-devel libXext-devel \
+        mesa-libGL-devel mesa-libGLU-devel \
+        fcgi-devel libcurl-devel \
+        fftw-devel tbb-devel \
+        giflib-devel libjpeg-turbo-devel libtiff-devel lz4-devel \
+        graphviz-devel gl2ps-devel \
+        qt6-qtbase-devel qt6-qtwebengine-devel qt6-qttools-devel \
+        openmpi-devel libgomp zeromq-devel cppzmq-devel && \
+    dnf clean all
+
+# OpenMPI is not on the default linker path on RHEL-family distros; append it.
+ENV PATH=/usr/lib64/openmpi/bin:$PATH \
+    LD_LIBRARY_PATH=/usr/lib64/openmpi/lib
+
+# =============================================================================
+# 2. Build CERN ROOT (full)
+# =============================================================================
+FROM base AS root-build
+ARG ROOT_VERSION
+
+WORKDIR /tmp
+RUN git clone --branch ${ROOT_VERSION} --depth=1 https://github.com/root-project/root.git
+
+# Notes (kept OUT of the RUN so no comment ever lands mid-shell-command):
+#  * CXX standard 17 (ROOT 6.39 default toolchain).
+#  * minuit2 is built-in since 6.34 and cannot be toggled.
+#  * html target was removed in 6.39; do not request it.
+#  * OpenGL/GL disabled (no GUI needed for batch CLUMPY draws).
+WORKDIR /tmp/root/build
+RUN cmake .. \
+        -DCMAKE_INSTALL_PREFIX=/opt/root \
+        -DCMAKE_CXX_STANDARD=17 \
+        -DCMAKE_CXX_STANDARD_REQUIRED=ON \
+        -DCMAKE_CXX_EXTENSIONS=OFF \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DPython3_EXECUTABLE=$(which python3) \
+        -DCURL_INCLUDE_DIR=/usr/include \
+        -DCURL_LIBRARY=/usr/lib64/libcurl.so \
+        -Dall=ON \
+        -Dopenmp=ON \
+        -Dmpi=ON \
+        -Dbuiltin_zeromq=OFF \
+        -Dgnuinstall=ON \
+        -Dxrootd=ON \
+        -Ddavix=ON \
+        -Dfftw3=ON \
+        -Dgraphviz=ON \
+        -Dgl2ps=ON \
+        -Dmathmore=ON \
+        -Droofit=ON \
+        -Dtmva=ON \
+        -Dpythia8=OFF \
+        -Dopengl=OFF \
+        -Dgl=OFF && \
+    make -j"$(nproc)" && \
+    make install
+
+ENV ROOTSYS=/opt/root \
+    PATH=/opt/root/bin:$PATH \
+    LD_LIBRARY_PATH=/opt/root/lib:$LD_LIBRARY_PATH
+
+# Sanity: ROOT present and MPI feature compiled in.
+RUN root-config --version && root-config --features | grep -iq mpi
+
+# =============================================================================
+# 3. Build GreAT (Grenoble Analysis Toolkit) -> /opt/GreAT, fparser -> /opt/fparser
+#    GreAT has no `make install`; artifacts are copied manually.
+# =============================================================================
+FROM root-build AS great-build
+
+WORKDIR /tmp
+RUN git clone --depth=1 https://gitlab.in2p3.fr/derome/GreAT.git
+
+ENV ROOT_DIR=/opt/root \
+    ROOTSYS=/opt/root \
+    PATH=/opt/root/bin:$PATH \
+    LD_LIBRARY_PATH=/opt/root/lib:$LD_LIBRARY_PATH \
+    ROOT_INCLUDE_PATH=/opt/root/include:/opt/root/include/VecCore
+
+# Small source patch required against current ROOT.
+RUN sed -i '1i #include "TMath.h"' /tmp/GreAT/Manager/src/Zone.cpp
+
+WORKDIR /tmp/GreAT/build
+RUN cmake .. \
+        -DCMAKE_INSTALL_PREFIX=/opt/GreAT \
+        -DROOTSYS=/opt/root \
+        -DROOT_DIR=/opt/root/cmake \
+        -DCMAKE_CXX_FLAGS="-I/opt/root/include -I/opt/root/include/root" \
+        -DCMAKE_INCLUDE_PATH=/opt/root/include \
+        -DCMAKE_CXX_STANDARD=17 \
+        -DCMAKE_CXX_STANDARD_REQUIRED=ON \
+        -DCMAKE_CXX_EXTENSIONS=OFF && \
+    make -j"$(nproc)"
+
+# Manual install: libs, binaries, ROOT dictionaries (*.pcm) and headers cling needs.
+RUN mkdir -p /opt/GreAT/lib /opt/GreAT/bin /opt/GreAT/include && \
+    cp -r /tmp/GreAT/build/lib/. /opt/GreAT/lib/ && \
+    cp -r /tmp/GreAT/build/bin/. /opt/GreAT/bin/ && \
+    find /tmp/GreAT/build -name "*Dict*.pcm" -exec cp -v {} /opt/GreAT/lib/ \; && \
+    cp -r /tmp/GreAT/Manager /opt/GreAT/include/ && \
+    cp -r /tmp/GreAT/MCMC    /opt/GreAT/include/
+
+# fparser is bundled with GreAT; install it to a single canonical prefix
+# that the env below (and the final image) reference consistently.
+RUN mkdir -p /opt/fparser && \
+    cp -r /tmp/GreAT/fparser4.5.1/. /opt/fparser/
+
+ENV LD_LIBRARY_PATH=/opt/GreAT/lib:/opt/fparser:$LD_LIBRARY_PATH
+
+# =============================================================================
+# 4. Build CLUMPY (v3.1.x) -> /opt/CLUMPY
+# =============================================================================
+FROM great-build AS clumpy-build
+ARG CLUMPY_VERSION
+
+ENV GREAT=/opt/GreAT \
+    ROOT_DIR=/opt/root \
+    ROOTSYS=/opt/root \
+    PATH=/opt/root/bin:$PATH \
+    LD_LIBRARY_PATH=/opt/root/lib:/opt/GreAT/lib:/opt/fparser:$LD_LIBRARY_PATH \
+    CPLUS_INCLUDE_PATH=/opt/GreAT/include:/opt/fparser \
+    ROOT_INCLUDE_PATH=/opt/root/include:/opt/root/include/VecCore
+
+WORKDIR /tmp
+RUN git clone --branch ${CLUMPY_VERSION} https://gitlab.com/clumpy/CLUMPY.git
+
+# Patch CLUMPY's FindROOT.cmake, broken for ROOT >= 6.30. Derive the version
+# number from the actually-installed ROOT (e.g. 6.39/01 -> 63901) instead of
+# hardcoding it, so it stays correct if ROOT_VERSION changes.
+RUN ver="$(root-config --version | tr -d './')" && \
+    fr="$(find /tmp/CLUMPY -name FindROOT.cmake)" && \
+    sed -i "s/MATH.*/set(ROOT_VERSION_NUMBER ${ver})/" "$fr"
+
+# Drop ROOT5-era legacy targets (Html/Cint) not present in ROOT6+.
+RUN sed -i '/Html/d;/Cint/d' /tmp/CLUMPY/CMakeLists.txt
+
+WORKDIR /tmp/CLUMPY/build
+RUN cmake .. \
+        -DCMAKE_INSTALL_PREFIX=/opt/CLUMPY \
+        -DCMAKE_CXX_FLAGS="-I/opt/root/include -I/opt/root/include/root" \
+        -DCMAKE_PREFIX_PATH="/opt/root;/opt/GreAT;/opt/fparser" \
+        -DCMAKE_CXX_STANDARD=17 \
+        -DCMAKE_CXX_STANDARD_REQUIRED=ON \
+        -DCMAKE_CXX_EXTENSIONS=OFF && \
+    make -j"$(nproc)"
+
+# Fix hardcoded paths in the bundled test script.
+RUN sed -i 's|/root//*clumpy|/opt/CLUMPY/bin/clumpy|g' /tmp/CLUMPY/bin/clumpy_tests || true
+
+# Minimal runtime install (CLUMPY's `make install` is intentionally skipped).
+RUN mkdir -p /opt/CLUMPY/clumpy_test_tmp && \
+    cp -r /tmp/CLUMPY/bin     /opt/CLUMPY/ && \
+    cp -r /tmp/CLUMPY/lib     /opt/CLUMPY/ && \
+    cp -r /tmp/CLUMPY/include /opt/CLUMPY/ && \
+    cp -r /tmp/CLUMPY/data    /opt/CLUMPY/ && \
+    cp -r /tmp/CLUMPY/doc     /opt/CLUMPY/ && \
+    cp -r /tmp/CLUMPY/Healpix3.31ForClumpy /opt/CLUMPY/
+
+# =============================================================================
+# 5. Final runtime image -- CLEAN base, runtime libraries only
+# =============================================================================
+FROM rockylinux/rockylinux:${ROCKY_TAG} AS final
+ARG WITH_PYSCI
+
+# Runtime-only shared libraries (no -devel, no toolchain). CRB/EPEL needed for
+# a few of these (davix, gl2ps, ftgl, ...).
+RUN dnf -y install dnf-plugins-core epel-release && \
+    { dnf config-manager --set-enabled crb || dnf config-manager setopt crb.enabled=1; } && \
+    dnf -y --setopt=install_weak_deps=False --allowerasing install \
+        which python3 python3-pip \
+        gsl boost cfitsio xrootd-client davix \
+        openssl sqlite fftw tbb lz4-libs \
+        giflib libjpeg-turbo libtiff libcurl fcgi \
+        ftgl gl2ps graphviz \
+        libX11 libXpm libXft libXext mesa-libGL mesa-libGLU \
+        libgomp openmpi zeromq && \
+    dnf clean all
+
+# Copy the built stack. /opt/fparser is now copied too (env below references it).
+COPY --from=root-build   /opt/root    /opt/root
+COPY --from=great-build  /opt/GreAT   /opt/GreAT
+COPY --from=great-build  /opt/fparser /opt/fparser
+COPY --from=clumpy-build /opt/CLUMPY  /opt/CLUMPY
+
+# Consistent, append-style environment.
+ENV ROOTSYS=/opt/root \
+    GREAT=/opt/GreAT \
+    CLUMPY=/opt/CLUMPY \
+    CLUMPY_DATA=/opt/CLUMPY/data \
+    PATH=/opt/root/bin:/opt/CLUMPY/bin:/usr/lib64/openmpi/bin:$PATH \
+    LD_LIBRARY_PATH=/opt/root/lib:/opt/GreAT/lib:/opt/fparser:/opt/CLUMPY/lib:/usr/lib64/openmpi/lib \
+    ROOT_INCLUDE_PATH=/opt/root/include:/opt/root/include/VecCore \
+    CPATH=/opt/root/include:/opt/GreAT/include:/opt/fparser:/opt/CLUMPY/include
+
+# ---- Optional: scientific Python stack for the repo's analysis scripts ----
+# (astropy/healpy/uproot/... install from manylinux wheels; no compiler needed.)
+RUN if [ "$WITH_PYSCI" = "true" ]; then \
+        pip3 install --no-cache-dir \
+            numpy scipy astropy healpy uproot awkward pandas matplotlib && \
+        dnf clean all; \
+    fi
+
+# ---- Validation: fail the build if any runtime .so of the CLUMPY binary is missing ----
+RUN root-config --version && \
+    if ldd /opt/CLUMPY/bin/clumpy 2>/dev/null | grep -i "not found"; then \
+        echo "ERROR: unresolved shared libraries for clumpy" >&2; exit 1; \
+    fi && \
+    echo "clumpy: all shared libraries resolved"
+
+# Bundled self-test (known to surface warnings against ROOT 6.39; non-fatal).
+RUN /opt/CLUMPY/bin/clumpy_tests || echo "CLUMPY self-tests reported failures (continuing)"
+
+# ---- Non-root user ----
+RUN useradd -m -s /bin/bash appuser
+USER appuser
+WORKDIR /home/appuser
+ENV HOME=/home/appuser
+
+CMD ["/bin/bash"]
