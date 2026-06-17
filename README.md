@@ -1,5 +1,10 @@
 # DMclumps
 
+[![C++17](https://img.shields.io/badge/C%2B%2B-17-00599C.svg?logo=cplusplus&logoColor=white)](https://isocpp.org/)
+[![Python 3](https://img.shields.io/badge/Python-3-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![arXiv](https://img.shields.io/badge/arXiv-2311.00113-b31b1b.svg)](https://arxiv.org/abs/2311.00113)
+
 Convert [CLUMPY](https://clumpy.gitlab.io/CLUMPY/) dark-matter sub-halo
 ("clump") catalogs into [CERN ROOT](https://root.cern/) `TTree`s, so they can be
 cross-matched against a pulsar database and used to associate dark-matter clumps
@@ -9,6 +14,38 @@ with individual pulsars along their lines of sight.
 > coordinate/sky-map tooling are in place. The pulsar ↔ clump **cross-matcher
 > itself is not yet implemented** — `makeCLUMPY_skyMap.py` currently only
 > visualizes the catalog. See [Status & caveats](#status--caveats).
+
+---
+
+## Publications
+
+These utilities were developed for, and used to produce the results in:
+
+> **Neutron star mass in dark matter clumps**  
+> Maksym Deliyergiyev, Antonino Del Popolo, Morgan Le Delliou  
+> *Monthly Notices of the Royal Astronomical Society* **527** (2023) 4483–4504;
+> erratum *MNRAS* **531** (2024) 4, 4263–4274.  
+> [doi:10.1093/mnras/stad3311](https://doi.org/10.1093/mnras/stad3311) ·
+> arXiv:[2311.00113](https://arxiv.org/abs/2311.00113) [astro-ph.GA]
+
+If you use this code, please cite the paper above:
+
+```bibtex
+@article{Deliyergiyev2023_NSinDMclumps,
+  author        = {Deliyergiyev, Maksym and Del Popolo, Antonino and Le Delliou, Morgan},
+  title         = {Neutron star mass in dark matter clumps},
+  journal       = {Monthly Notices of the Royal Astronomical Society},
+  volume        = {527},
+  number        = {3},
+  pages         = {4483--4504},
+  year          = {2023},
+  doi           = {10.1093/mnras/stad3311},
+  eprint        = {2311.00113},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.GA},
+  note          = {Erratum: MNRAS 531 (2024) 4, 4263--4274}
+}
+```
 
 ---
 
@@ -187,4 +224,9 @@ holds provenance objects `clumpy_source_drawn` and `clumpy_Jfactor_aperture`
 - **CLUMPY** — Charbonnier, Combet & Maurin, *Comput. Phys. Commun.* (clump
   catalogs and `J`-factors). <https://clumpy.gitlab.io/CLUMPY/>
 - **ROOT** — Brun & Rademakers et al., CERN. <https://root.cern/>
-- **GreAT** — Grenoble Analysis Toolkit (MCMC/Jeans). 
+- **GreAT** — Grenoble Analysis Toolkit (MCMC/Jeans).
+
+## License
+
+Released under the [MIT License](LICENSE). If you use this code in academic
+work, please also cite the paper listed under [Publications](#publications).
