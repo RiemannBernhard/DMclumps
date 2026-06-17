@@ -117,7 +117,13 @@ RUN root-config --version && root-config --features | grep -iq mpi
 # =============================================================================
 FROM root-build AS great-build
 
-WORKDIR /tmp
+# Clone and BUILD GreAT under /opt (NOT /tmp). ROOT bakes the build-time include
+# paths into its dictionaries (*.pcm/*.rootmap); building here makes cling's
+# autoloader look under /opt/GreAT/{Manager,MCMC}/include, which exists at runtime.
+# Building in /tmp would record /tmp/GreAT/... -- fine under Docker, but Apptainer
+# bind-mounts the host /tmp over the container's, hiding it and producing
+# "Missing FileEntry for /tmp/GreAT/MCMC/include/..." autoload errors on HPC.
+WORKDIR /opt
 RUN git clone --depth=1 https://gitlab.in2p3.fr/derome/GreAT.git
 
 ENV ROOT_DIR=/opt/root \
@@ -127,9 +133,9 @@ ENV ROOT_DIR=/opt/root \
     ROOT_INCLUDE_PATH=/opt/root/include:/opt/root/include/VecCore
 
 # Small source patch required against current ROOT.
-RUN sed -i '1i #include "TMath.h"' /tmp/GreAT/Manager/src/Zone.cpp
+RUN sed -i '1i #include "TMath.h"' /opt/GreAT/Manager/src/Zone.cpp
 
-WORKDIR /tmp/GreAT/build
+WORKDIR /opt/GreAT/build
 RUN cmake .. \
         -DCMAKE_INSTALL_PREFIX=/opt/GreAT \
         -DROOTSYS=/opt/root \
@@ -141,22 +147,21 @@ RUN cmake .. \
         -DCMAKE_CXX_EXTENSIONS=OFF && \
     make -j"$(nproc)"
 
-# Manual install (GreAT has no `make install`). CLUMPY's CMakeLists looks for
-# GreAT headers in the SOURCE layout under $GREAT, i.e.
-#   ${GREAT}/Manager/include  ${GREAT}/MCMC/include  ${GREAT}/fparser4.5.1
-# and the library as `-L${GREAT}/lib -lgreat`, so preserve that layout exactly.
+# Manual install (GreAT has no `make install`). The headers (Manager/include,
+# MCMC/include) and fparser4.5.1 are already in the source tree at /opt/GreAT --
+# exactly where CLUMPY's CMake looks (${GREAT}/Manager/include, ${GREAT}/MCMC/include,
+# ${GREAT}/fparser4.5.1). Only the built library + ROOT dictionaries need to land
+# in ${GREAT}/lib (CLUMPY links -L${GREAT}/lib -lgreat). Drop the build tree after.
 RUN mkdir -p /opt/GreAT/lib /opt/GreAT/bin && \
-    cp -r /tmp/GreAT/build/lib/. /opt/GreAT/lib/ && \
-    cp -r /tmp/GreAT/build/bin/. /opt/GreAT/bin/ && \
-    find /tmp/GreAT/build -name "*Dict*.pcm" -exec cp -v {} /opt/GreAT/lib/ \; && \
-    cp -r /tmp/GreAT/Manager      /opt/GreAT/Manager && \
-    cp -r /tmp/GreAT/MCMC         /opt/GreAT/MCMC && \
-    cp -r /tmp/GreAT/fparser4.5.1 /opt/GreAT/fparser4.5.1
+    cp -r /opt/GreAT/build/lib/. /opt/GreAT/lib/ && \
+    (cp -r /opt/GreAT/build/bin/. /opt/GreAT/bin/ 2>/dev/null || true) && \
+    find /opt/GreAT/build -name "*Dict*.pcm" -exec cp -v {} /opt/GreAT/lib/ \; && \
+    rm -rf /opt/GreAT/build
 
 # fparser is bundled with GreAT; install it to a single canonical prefix
 # that the env below (and the final image) reference consistently.
 RUN mkdir -p /opt/fparser && \
-    cp -r /tmp/GreAT/fparser4.5.1/. /opt/fparser/
+    cp -r /opt/GreAT/fparser4.5.1/. /opt/fparser/
 
 ENV LD_LIBRARY_PATH=/opt/GreAT/lib:/opt/fparser:$LD_LIBRARY_PATH
 
@@ -239,11 +244,9 @@ COPY --from=great-build  /opt/GreAT   /opt/GreAT
 COPY --from=great-build  /opt/fparser /opt/fparser
 COPY --from=clumpy-build /opt/CLUMPY  /opt/CLUMPY
 
-# GreAT's ROOT dictionaries record the build-time header path (/tmp/GreAT/...).
-# ROOT's cling autoloader looks for those headers at that literal path, so
-# symlink it to the install location; otherwise CLUMPY prints
-# "Missing FileEntry for /tmp/GreAT/MCMC/include/..." at startup.
-RUN ln -sfn /opt/GreAT /tmp/GreAT
+# (GreAT is now built under /opt, so its ROOT dictionaries reference
+# /opt/GreAT/{Manager,MCMC}/include -- which exists at runtime and is not masked
+# by Apptainer's /tmp mount. No /tmp/GreAT symlink is needed.)
 
 # Consistent, append-style environment.
 ENV ROOTSYS=/opt/root \
