@@ -1,0 +1,24 @@
+# Internal / scratch notes (not part of the repo)
+README_discussion.md
+
+# Python bytecode
+**/__pycache__/
+*.py[cod]
+
+# Editor / OS cruft
+*.swp
+*.kate-swp
+.vscode/
+.idea/
+.DS_Store
+
+# Build / log artifacts
+*.log
+
+# Container build artifacts (large binaries — never commit)
+*.sif
+*.tar
+
+# CLUMPY run outputs
+output/
+apptainer_out/

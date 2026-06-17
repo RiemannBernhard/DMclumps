@@ -1,0 +1,58 @@
+# Apptainer/Singularity definition for the ROOT + GreAT + CLUMPY stack.
+#
+# It does NOT rebuild anything: it converts the Docker image produced by
+# Dockerfile.clumpy into a single portable .sif file, which is the natural
+# artifact for an HPC cluster (rootless, no daemon, one file to scp).
+#
+# Build (on a machine that has the docker image `my-clumpy:prod` + apptainer):
+#     apptainer build clumpy.sif clumpy.def
+#   equivalently, without this file:
+#     apptainer build clumpy.sif docker-daemon://my-clumpy:prod
+#   If the image lives in a registry instead of the local docker daemon:
+#     apptainer build clumpy.sif docker://<registry>/my-clumpy:prod
+#   No docker on the build host? Export a tarball and build from it:
+#     docker save my-clumpy:prod -o my-clumpy.tar      # on the laptop
+#     apptainer build clumpy.sif docker-archive://my-clumpy.tar
+#
+# Then copy clumpy.sif to the cluster and run (see %help).
+
+Bootstrap: docker-daemon
+From: my-clumpy:prod
+
+%labels
+    Author        Maksym Deliyergiyev
+    Version       v3.1.1
+    Description   ROOT 6.39 + GreAT + CLUMPY 3.1.1 (Apptainer build of Dockerfile.clumpy)
+
+%environment
+    # The Docker image's ENV (ROOTSYS/CLUMPY/PATH/LD_LIBRARY_PATH/...) is carried
+    # into the .sif automatically. The one thing CLUMPY needs at startup is PWD
+    # (get_clumpy_dirs() in misc.cc does string(getenv("PWD"))). Apptainer keeps
+    # the host working directory, but export it explicitly as a safety net so the
+    # binary never crashes with "basic_string: construction from null".
+    export PWD="${PWD:-$(pwd)}"
+
+%runscript
+    # `apptainer run clumpy.sif [cmd...]` runs the given command (default: clumpy).
+    if [ "$#" -eq 0 ]; then exec clumpy; fi
+    exec "$@"
+
+%help
+    ROOT 6.39 + GreAT + CLUMPY 3.1.1.
+
+    Apptainer keeps your current directory mounted and writable, so -v/-w from the
+    docker workflow are unnecessary; outputs land on the host filesystem directly.
+
+    Docker:
+      docker run --rm -v "$PWD":/work -w /work my-clumpy:prod \
+        clumpy -g7 -i clumpy_config/clumpy_params_g7.txt --gSIM_OUTPUT_DIR=/work/output
+
+    Apptainer (run from the repo directory):
+      apptainer exec clumpy.sif \
+        clumpy -g7 -i clumpy_config/clumpy_params_g7.txt \
+          --gSIM_SEED=4448 --gPP_DM_MASS_GEV=100 --gSIM_HEALPIX_NSIDE=2048 \
+          --gSIM_THETA_ORTH_SIZE_DEG=d --gSIM_THETA_SIZE_DEG=360 \
+          --gSIM_OUTPUT_DIR=output
+
+    To reproduce the docker bind exactly:
+      apptainer exec --bind "$PWD":/work --pwd /work clumpy.sif clumpy -g7 ...
