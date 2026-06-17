@@ -157,6 +157,19 @@ Inside a **Slurm** job, just place the `apptainer exec …` line in your batch
 script (prefix with `module load apptainer` if your site requires it). The image
 ships OpenMPI; for multi-node MPI, bind the host MPI/PMI at run time.
 
+Ready-made (cluster-neutral) batch scripts live in [`slurm/`](slurm/):
+
+| Script | Purpose |
+|---|---|
+| [`slurm/clumpy_g7_slurm.sbatch`](slurm/clumpy_g7_slurm.sbatch) | one `-g7` draw as a single SMP job |
+| [`slurm/clumpy_g7_array.sbatch`](slurm/clumpy_g7_array.sbatch) | a job **array** sweeping a `seed × {100,500} GeV` grid in parallel |
+
+Both are single-node OpenMP (SMP) jobs. Before submitting, set your SLURM
+`--account` (`sacctmgr show assoc -n user=$USER format=Account`), confirm the
+Apptainer module name (`module avail apptainer`), and adjust `SIF`/`PROJECT`
+paths. Submit with `sbatch slurm/clumpy_g7_slurm.sbatch`; results are written to
+`/scratch/$USER/$SLURM_JOB_ID` and staged back to `output/`.
+
 ### Option C — local ROOT
 
 ```bash
