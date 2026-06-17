@@ -10,9 +10,9 @@ from matplotlib import ticker
 import uproot
 #import ROOT
 #from ROOT import TDirectory
-from root_numpy import fill_hist, fill_profile
-from root_numpy import root2array, tree2array
-from root_numpy import array2tree, array2root
+# NOTE: root_numpy was imported here but never used anywhere in this script.
+# It is deprecated and does not build against modern ROOT/Python, so the imports
+# were removed. Use uproot (imported above) for any ROOT I/O.
 
 
 
@@ -23,7 +23,9 @@ import healpy as hp
 import numpy as np
 import pandas as pd
 
-import randoms as rg
+# `randoms` is a local helper module used only by create() below; it is imported
+# lazily inside that function so this script does not require it (and does not
+# fail at import) for the sky-map code path.
 
 from healpy.newvisufunc import projview, newprojplot
 # classic healpy mollweide projections plot with graticule and axis labels
@@ -41,20 +43,9 @@ import argparse
 from astrotools import auger, coord, skymap
 from astrotools.skymap import PlotSkyPatch
 
-from gammapy.data import EventList
-from gammapy.datasets import MapDataset
-from gammapy.irf import PSFMap, EDispKernelMap
-from gammapy.maps import Map, MapAxis, WcsGeom
-from gammapy.modeling.models import (
-    PowerLawSpectralModel,
-    PointSpatialModel,
-    SkyModel,
-    TemplateSpatialModel,
-    PowerLawNormSpectralModel,
-    Models,
-    create_fermi_isotropic_diffuse_model,
-)
-from gammapy.modeling import Fit
+# Only gammapy.maps.Map is actually used (a single Map.read of an exposure map);
+# the EventList/MapDataset/PSF/IRF/modeling imports were unused and were removed.
+from gammapy.maps import Map
 
 
 
@@ -74,6 +65,7 @@ def create(args=None):
         fmt='ascii'
     else:
         fmt='fits'
+    import randoms as rg   # local module; only needed for this entry point
     rg.make_random(args.nside,args.inputname,args.Nf,outfile=args.outputname,viewmap=args.view,fmt=fmt,rsd=args.rsd)
 
 
@@ -1393,14 +1385,14 @@ gridcolor=plt.get_cmap('Greys')
 #vecs=coord.eq2ecl(vecs)
 
 
-"""
+r"""
 
 
 # Plot an example map with sampled NS masses. If you specify the opath keyword in
 # the skymap function, the plot will be automatically saved and closed
 log10e = auger.rand_energy_from_auger(n=len(column(l_GB_GL_dist,1)), log10e_min=min(column(NS_and_compStar_mass_and_unc,0)))
 #skymap.scatter(vecs, c=log10e, opath='plots_v2/healpix_NS_map_with_astrotools.pdf')
-#fig, ax = skymap.scatter(vecs, s=100, cmap=cmap, tickalpha=0.2, plane='GP', coord_system='gal', c=log10e, cblabel=r'$M_{T}[M_{\odot}]$ ')
+#fig, ax = skymap.scatter(vecs, s=100, cmap=cmap, tickalpha=0.2, plane='GP', coord_system='gal', c=log10e, cblabel=r'$M_{T}[M_{odot}]$ ')
 fig, ax = skymap.scatter(vecs, s=100, cmap=cmap, fontsize=16,
 #fig, ax = skymap.scatter(vecs, cmap=cmap, fontsize=16,
                          dark_grid=True,
@@ -1481,7 +1473,10 @@ for i in range(len(column(RA_DEC_deg_dist_kpc,0))):
 #file_name= '/mnt/dampe_data/CLUMPY/root_ntuples/ntuple_annihil_seed9111_maxNSubclumps300_minSubClumpM_m07_maxSubClumpM01_mDM100GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root'
 #file_name= '/mnt/dampe_data/CLUMPY/root_ntuples/ntuple_annihil_seed4444_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_nClumps300_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root'
 #file_name= '/mnt/dampe_data/CLUMPY/root_ntuples/ntuple_annihil_seed3120_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_nClumps300_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root'
-file_name= '/mnt/dampe_data/CLUMPY/root_ntuples/ntuple_annihil_seed1332_maxNSubclumps200_minSubClumpM_m07_maxSubClumpM01_mDM100GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root'
+
+#file_name= '/mnt/dampe_data/CLUMPY/root_ntuples/ntuple_annihil_seed1332_maxNSubclumps200_minSubClumpM_m07_maxSubClumpM01_mDM100GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root'
+file_name= '/home/mdeliyer/TestArea/DMclumps/data/root/100GeV/ntuple_seed4448_minSubClumpM_m03_MmaxFrac_0.2_minNClumps10_mDM100GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root'
+
 #file_name= '/mnt/dampe_data/CLUMPY/analysis/mergedALL_NS-DMclump_mDM100GeV_nside2048_r005_v5.root'
 #file_name= '/mnt/dampe_data/CLUMPY/analysis/mergedALL_NS-DMclump_mDM500GeV_nside2048_r005_v5.root'
 #tree_1   = uproot.open(file_name)["clumps_1kpc"]
@@ -1577,7 +1572,7 @@ cmap=plt.get_cmap('inferno')
 
 hp.mollview(apodized_mask5rad,
             #title="DM clumps with $M > 10^{7} [M_{\odot}]$ with Gaussian smearing level: $2^{\circ}$",
-            title="DM clumps with $M > 10^{7} [M_{\odot}]$ with Gaussian smearing level: $5^{\circ}$",
+            title=r"DM clumps with $M > 10^{7} [M_{\odot}]$ with Gaussian smearing level: $5^{\circ}$",
             #title="DM clumps with $M > 10^{7} [M_{\odot}]$ with Gaussian smearing level: $1^{\circ}$",
             #title="DM clumps with $M > 10^{3} [M_{\odot}]$ with Gaussian smearing level: $1^{\circ}$",
             #title="DM clumps with $M > 10^{3} [M_{\odot}]$ with Gaussian smearing level: $5^{\circ}$",
@@ -1592,7 +1587,7 @@ hp.mollview(apodized_mask5rad,
             coord='G', #norm='log',
             notext=False)#,#
             #min=1e0, max=1e4)
-"""
+r"""
 hp.projview(
     apodized_mask5rad,
     cmap=cmap,
@@ -1648,7 +1643,7 @@ HpxAx = f.get_children()[1]
 coord_text_obj = HpxAx.get_children()[0]
 #coord_text_obj.set_fontsize(fontsize_)
 
-"""
+r"""
 tick_locator = ticker.MaxNLocator(nbins=8)
 cbar =plt.colorbar(sc,
     orientation='horizontal',
@@ -1886,7 +1881,7 @@ cmap=plt.get_cmap('inferno')
 hp.mollview(apodized_mask5rad,
             #title="DM clumps with $M > 10^{7} [M_{\odot}]$ with Gaussian smearing level: $1^{\circ}$",
             #title="DM clumps that wraps the NSs",
-            title="DM clumps with $M > 10^{3} [M_{\odot}]$ with Gaussian smearing level: $2^{\circ}$",
+            title=r"DM clumps with $M > 10^{3} [M_{\odot}]$ with Gaussian smearing level: $2^{\circ}$",
             #title="DM clumps with $M > 10^{3} [M_{\odot}]$ with Gaussian smearing level: $5^{\circ}$",
             #title="DM clumps with $M > 10^{4} [M_{\odot}]$ with Gaussian smearing level: $5^{\circ}$",
             #title="DM clumps with $M > 10^{5} [M_{\odot}]$ with Gaussian smearing level: $5^{\circ}$",
