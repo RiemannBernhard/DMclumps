@@ -82,7 +82,8 @@ Dockerfile.clumpy                          ROOT + GreAT + CLUMPY build/run envir
 ## Environment
 
 You need CERN ROOT (≥ 6.x; tested against 6.38/6.39) plus, to *generate* new
-catalogs, the CLUMPY stack. Two options:
+catalogs, the CLUMPY stack. Three ways: a Docker container (laptop/desktop), an
+Apptainer/Singularity image (HPC clusters), or a local ROOT install.
 
 ### Option A — container (recommended, reproducible)
 
@@ -106,7 +107,57 @@ docker build -f Dockerfile.clumpy --build-arg WITH_PYSCI=false -t clumpy:v3.1.1-
 Inside the container `clumpy`, `root`, and the GreAT libraries are on the path
 (`$CLUMPY`, `$ROOTSYS`, `$GREAT` are set).
 
-### Option B — local ROOT
+### Option B — HPC with Apptainer / Singularity
+
+HPC clusters don't run Docker (no root, no daemon). `clumpy.def` converts the
+**already-built** Docker image into a single portable `.sif` — no recompilation,
+runs rootless. Build it once (on a host that has the image and Apptainer):
+
+```bash
+apptainer build clumpy.sif clumpy.def
+# equivalently, without the def file:
+#   apptainer build clumpy.sif docker-daemon://my-clumpy:prod
+```
+
+Move it to the cluster (the `.sif` is one self-contained file):
+
+```bash
+# simplest: build on your laptop, then copy the single file
+scp clumpy.sif user@hpc:~/
+
+# no Docker on the build host? export a tarball and build from it there
+docker save my-clumpy:prod -o my-clumpy.tar
+apptainer build clumpy.sif docker-archive://my-clumpy.tar
+# or pull from a registry
+apptainer build clumpy.sif docker://<registry>/my-clumpy:prod
+```
+
+Run it like the Docker command — Apptainer **auto-mounts your current directory
+(writable)**, so the `-v`/`-w` binds are unnecessary and output lands on the host
+filesystem, owned by you:
+
+```bash
+apptainer exec clumpy.sif \
+  clumpy -g7 -i clumpy_config/clumpy_params_g7.txt \
+    --gSIM_SEED=4448 --gPP_DM_MASS_GEV=100 --gSIM_HEALPIX_NSIDE=2048 \
+    --gSIM_THETA_ORTH_SIZE_DEG=d --gSIM_THETA_SIZE_DEG=360 \
+    --gSIM_OUTPUT_DIR=output
+```
+
+| Docker | Apptainer |
+|---|---|
+| `docker run --rm -v "$PWD":/work -w /work my-clumpy:prod clumpy …` | `apptainer exec clumpy.sif clumpy …` |
+
+> **Full-sky FOV.** For a 360° map use *RING mode* — `--gSIM_THETA_ORTH_SIZE_DEG=d`
+> (the literal `d`) with `--gSIM_THETA_SIZE_DEG=360`. Setting both dimensions to a
+> number ≥ 180 is rejected by CLUMPY. Use a smaller `--gSIM_HEALPIX_NSIDE` for a
+> quick test; full-resolution full-sky J-maps are expensive.
+
+Inside a **Slurm** job, just place the `apptainer exec …` line in your batch
+script (prefix with `module load apptainer` if your site requires it). The image
+ships OpenMPI; for multi-node MPI, bind the host MPI/PMI at run time.
+
+### Option C — local ROOT
 
 ```bash
 source /path/to/root/bin/thisroot.sh   # sets ROOTSYS / PATH / LD_LIBRARY_PATH
