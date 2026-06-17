@@ -279,4 +279,11 @@ USER appuser
 WORKDIR /home/appuser
 ENV HOME=/home/appuser
 
-CMD ["/bin/bash"]
+# CLUMPY reads getenv("PWD") at startup (misc.cc get_clumpy_dirs) and crashes
+# with "basic_string: construction from null" if PWD is unset. That happens when
+# the image is run with a direct command (no shell), e.g. `docker run img clumpy
+# -g7 ...`, because neither exec nor `docker -w` exports PWD. Wrap the command in
+# bash, which always sets PWD, so the binary runs whether invoked directly or
+# via a shell.
+ENTRYPOINT ["bash", "-c", "exec \"$@\"", "bash"]
+CMD ["bash"]
