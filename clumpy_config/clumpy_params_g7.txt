@@ -1,0 +1,101 @@
+# CLUMPY, version v3.1
+# Standard parameter file for simulation mode g7
+# Execute with $CLUMPY/bin/clumpy -g7 -i clumpy_params_g7.txt 
+
+# Variable name                         Unit           Value             (Format)          (Comment)
+
+#------------------------------------------------------------------------------
+# Cosmological parameters
+#------------------------------------------------------------------------------
+gCOSMO_DELTA0                           [-]            200               <float>           Overdensity factor at z=0;-1 for kBRYANNORMAN98
+gCOSMO_FLAG_DELTA_REF                   [-]            kRHO_CRIT         <string>          Reference density of the overdensity factor
+
+#------------------------------------------------------------------------------
+# Dark Matter global parameters
+#------------------------------------------------------------------------------
+gDM_LOGCDELTA_STDDEV                    [-]            0                 <float>           log-std. deviation of subhalo scattering
+gDM_RHOSAT                              [Msol/kpc^3]   1e+19             <float>           Dark Matter saturation density
+gDM_SUBS_MMIN                           [Msol]         1e-06             <float>           Smallest subclump mass
+gDM_SUBS_MMAXFRAC                       [-]            0.01              <float>           Biggest subclump mass, fraction of host mass
+gDM_SUBS_NUMBEROFLEVELS                 [-]            1                 <integer>         Number of multilevel substructures
+
+#------------------------------------------------------------------------------
+# Milky-Way DM total and clump parameters (see profiles.h and clumps.h)
+#------------------------------------------------------------------------------
+gMW_TOT_FLAG_PROFILE                    [-]            kEINASTO          <string>          Profile of total Galactic DM halo
+gMW_TOT_SHAPE_PARAMS_0                  [-]            0.17              <float>           Shape parameter 1 of total Gal. DM halo profile
+gMW_TOT_RSCALE                          [kpc]          15.14             <float>           Scale radius of total Dark Matter halo profile
+gMW_RMAX                                [kpc]          260               <float>           Virial radius of Dark Matter halo
+gMW_RSOL                                [kpc]          8                 <float>           Sun's distance from the Gal. center
+gMW_RHOSOL                              [GeV/cm3]      0.4               <float>           Local Dark Matter density
+gMW_TRIAXIAL_IS                         [-]            0                 <boolean (0/1)>   Triaxial halo (True/False)
+gMW_SUBS_FLAG_PROFILE                   [-]            kHOST             <string>          Halo profile of subclumps
+gMW_SUBS_SHAPE_PARAMS_0                 [-]            kHOST             <float or kHOST>  Shape parameter 1 of subclumps halo profile
+gMW_SUBS_SHAPE_PARAMS_1                 [-]            kHOST             <float or kHOST>  Shape parameter 2 of subclumps halo profile
+gMW_SUBS_SHAPE_PARAMS_2                 [-]            kHOST             <float or kHOST>  Shape parameter 3 of subclumps halo profile
+gMW_SUBS_FLAG_CDELTAMDELTA              [-]            kMOLINE17_200     <string>          Mass-concentration model of subclumps
+gMW_SUBS_DPDV_FLAG_PROFILE              [-]            kHOST             <string>          dP/dV profile of subhalo distribution in host
+gMW_SUBS_DPDV_SHAPE_PARAMS_0            [-]            0.68              <float or kHOST>  Shape parameter 1 of dP/dV distrib. profile
+gMW_SUBS_DPDV_SHAPE_PARAMS_1            [-]            kHOST             <float or kHOST>  Shape parameter 2 of dP/dV distrib. profile
+gMW_SUBS_DPDV_SHAPE_PARAMS_2            [-]            kHOST             <float or kHOST>  Shape parameter 3 of dP/dV distrib. profile
+gMW_SUBS_DPDV_RSCALE_TO_RS_HOST         [-]            13.14399          <float>           Scale radius of dP/dV profile to r_s of host
+gMW_SUBS_DPDM_SLOPE                     [-]            1.9               <float>           Slope of power-law subhalo mass spectrum dP/dM
+gMW_SUBS_M1                             [Msol]         1e+08             <float>           Mass m1
+gMW_SUBS_M2                             [Msol]         1e+10             <float>           Mass m2
+gMW_SUBS_N_INM1M2                       [-]            150               <integer>         # of subclumps with masses between m1 and m2
+gMW_SUBS_TABULATED_IS                   [-]            0                 <boolean (0/1)>   If true, use tabulated (evolved) sub properties
+gMW_SUBS_TABULATED_CMIN_OF_R            [-]            $CLUMPY/data/subhalos_Stref17/cmin_core_eps1.dat    <string>          File for minimal c(r_gal) after tidal effects
+gMW_SUBS_TABULATED_LCRIT                [-]            $CLUMPY/data/subhalos_Stref17/l_crit_core_eps1.dat    <string>          File for l_crit (for evolved sub properties)
+gMW_SUBS_TABULATED_RTIDAL_TO_RS         [-]            $CLUMPY/data/subhalos_Stref17/rt_over_rs_core.dat    <string>          File for r_tidal/r_s (for evolved subs)
+
+#------------------------------------------------------------------------------
+# Particle physics parameters
+# N.B.: we recommend the use of kCIRELLI11 for the spectra. You then have to
+#    select branching ratios in gPP_BR as a comma-separated
+#    list (no space) of Br values for the 28 channels below:
+#   0: eL+eL-       1: eR+eR-       2: e+e-
+#   3: muL+muL-     4: muR+muR-     5: mu+mu-
+#   6: tauL+tauL-   7: tauR+tauR-   8: tau+tau-
+#   9: qqbar        10: ccbar       11: bbbar      12: ttbar
+#  13: WL+WL-       14: WT+WT-      15: W+W-
+#  16: ZLZL         17: ZTZT        18: ZZ
+#  19: gluglu       20: gammagamma  21: hh
+#  22: nuenue       23: numunumu    24: nutaunutau
+#  25: VV4e         26: VV4mu       27: VV4tau
+#------------------------------------------------------------------------------
+gPP_BR                                  [-]            0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,    <comma-sep list>  Branching channel ratio
+gPP_FLAG_SPECTRUMMODEL                  [-]            kCIRELLI11_EW     <string>          Spectrum model
+gPP_DM_ANNIHIL_DELTA                    [-]            2                 <integer>         Majorana (2) or Dirac (4) particle
+gPP_DM_ANNIHIL_SIGMAV_CM3PERS           [cm^3/s]       3e-26             <float>           Annihilation cross section
+gPP_DM_IS_ANNIHIL_OR_DECAY              [-]            1                 <boolean (0/1)>   Dark Matter Model (0: Decay, 1: Annihilation)
+gPP_DM_MASS_GEV                         [GeV]          100               <float>           [GeV] dark matter particle mass
+gPP_NUMIXING_THETA12_DEG                [deg]          34                <float>           Neutrino mixing angle 1
+gPP_NUMIXING_THETA13_DEG                [deg]          9                 <float>           Neutrino mixing angle 2
+gPP_NUMIXING_THETA23_DEG                [deg]          41                <float>           Neutrino mixing angle 3
+
+#------------------------------------------------------------------------------
+# Simulation parameters
+#  Some parameters can be set to default values respectively automatically
+#  adapted by setting to -1 (see documentation).
+#  gSIM_OUTPUT_DIR: when set to -1, set to folder from where clumpy is executed.
+#  gSIM_SEED: if=0, seed is chosen from computer clock (for drawing clumps)
+#------------------------------------------------------------------------------
+gSIM_IS_WRITE_FLUXMAPS                  [-]            1                 <boolean (0/1)>   Calculate gamma-ray and/or neutrino fluxes
+gSIM_FLUX_IS_INTEG_OR_DIFF              [-]            1                 <boolean (0/1)>   Flux either differential (0) or integrated (1)
+gSIM_FLUX_EMIN_GEV                      [GeV]          1                 <float>           Lower limit for integrated flux & shown spectrum
+gSIM_FLUX_EMAX_GEV                      [GeV]          99                <float>           Upper limit for integrated flux & shown spectrum
+gSIM_FLUX_FLAG_NUFLAVOUR                [-]            kNUMU             <string>          Considered neutrino flavour
+gSIM_GAUSSBEAM_GAMMA_FWHM_DEG           [deg]          -1                <float or -1>     FWHM of Gaussian beam of gamma-ray telescope
+gSIM_GAUSSBEAM_NEUTRINO_FWHM_DEG        [deg]          -1                <float or -1>     FWHM of Gaussian beam of neutrino telescope
+gSIM_HEALPIX_NSIDE                      [-]            1024              <integer or -1>   Resolution parameter for HEALPix
+gSIM_IS_ASTRO_OR_PP_UNITS               [-]            0                 <boolean (0/1)>   Output units [Msol]&[kpc] (1) or [GeV]&[cm] (0)
+gSIM_PSI_OBS_DEG                        [deg]          180               <float>           Galactic long. coordinate of FOV center
+gSIM_THETA_OBS_DEG                      [deg]          0                 <float or 's'>    Galactic lat. coordinate of FOV center
+gSIM_THETA_ORTH_SIZE_DEG                [deg]          4                 <float or 'd'>    Grid diameter in theta_orth-dir.
+gSIM_THETA_SIZE_DEG                     [deg]          4                 <float>           Grid diameter in theta-dir.
+gSIM_EPS                                [-]            0.01              <float>           Numeric precision of the simulation
+gSIM_IS_WRITE_GALPOWERSPECTRUM          [-]            0                 <boolean (0/1)>   Write angular power spectrum of DM skymap
+gSIM_IS_WRITE_ROOTFILES                 [-]            1                 <boolean (0/1)>   Write output additionally in ROOT format
+gSIM_OUTPUT_DIR                         [-]            output/           <string or -1>    Output directory (absolute or relative)
+gSIM_SEED                               [-]            666               <integer>         Random generator seed
+gSIM_USER_RSE                           [-]            2                 <float>           Contrast (%) above which 2D subhalos are drawn

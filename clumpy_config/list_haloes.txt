@@ -1,0 +1,40 @@
+#************************************************************************************************************
+# CLUMPY v3.0 formatted: 
+# -------------------------
+#
+# The list below is the working list of CLUMPY DM haloes
+# N.B.: the parameters for the Galactic halo must be given in clumpy_params.txt
+#
+# Format: 
+#  - a line starting with # (or a blank line) is discarded
+#  - Name: name of your object
+#  - Type: DSPH, CLUSTER, or GALAXY (for external galaxies)
+#  - Position: Given in galactic coordinates (l,b)
+#  - d: distance given as comoving line-of-sight distance, d_c
+#  - z: distance given as redshift. Either d or z must be set to -1
+#  - Rdelta: outer bound of the halo
+#  - DM DISTRIBUTION (RHO_TOT): structural parameters for the total DM distribution (see profile.h)
+#  - Last 7 parameters for triaxiality are optional
+#
+# N.B.: 
+#  1. A DM shape is always defined by a DM family (gENUM_PROFILE) 
+#     and three shape parameters (#1 #2 #3). Set unused parameters to -1
+#  2. Substructure properties must be set in clumpy_params.txt for each
+#     object type (parameters gType_XXX)
+#  3. Rdelta, rs, rhos have to be provided in comoving coordinates. It is rhos = rho(rs) except for kBURKERT, for which rhos = rho(r=0).
+#
+#*********************************************************************************************************************************************************#
+#                  [OBJECT LOCATION AND SIZE]                |             DM DISTRIBUTION (RHO_TOT)                      [TRIAXIALITY]                   #
+# Name           Type      l       b      d     z   Rdelta   |     rhos       rs     prof.   #1   #2   #3       IsTriaxial  a   b   c   rot1  rot2  rot3  #
+#  -               -     [deg]   [deg]  [kpc]   -    [kpc]   |  [Msol/kpc3]  [kpc]  [enum]    -    -    -           -       -   -   -   [deg] [deg] [deg] #
+#*********************************************************************************************************************************************************#
+
+rs01_gamma05     DSPH     20     20     100     -1    10.        3.0052e8    0.1    kZHAO   1.0  3.0  0.5
+rs10_gamma10     DSPH    179      0     100     -1    -1         6.3e6       1.0    kZHAO   1.0  3.0  1.0
+Abell_2261       CLUSTER  55.56  31.95   -1 0.2249   3e3         7.01e5    652.  kEINASTO   0.17 3.0  1.0  # after CLASH, Coe et al. (2012)
+#rs01_gamma00     DSPH    179      0     100     -1     3.0       224.e7      0.1    kZHAO   1.0  3.0  0.0
+#rs01_gamma15     DSPH     70      0     100     -1    -1          88.e7      0.1    kZHAO   1.0  3.0  1.5
+#rs10_gamma00     DSPH     90      0     100     -1     3.0        16.e7      1.0    kZHAO   1.0  3.0  0.0
+#rs10_gamma05     DSPH    120      5     100     -1    -1         6.47e7      1.0    kZHAO   1.0  3.0  0.5
+#rs10_gamma10     DSPH    160      0     100     -1    -1         2.52e7      1.0    kZHAO   1.0  3.0  1.0
+#rs10_gamma15     DSPH    170     30     100     -1     3.0       0.92e7      1.0    kZHAO   1.0  3.0  1.5
