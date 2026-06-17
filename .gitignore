@@ -1,3 +1,6 @@
+# Local tooling / agent state (may contain personal info — never commit)
+.claude/
+
 # Internal / scratch notes (not part of the repo)
 README_discussion.md
 
