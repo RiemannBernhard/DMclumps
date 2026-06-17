@@ -48,6 +48,35 @@ from astrotools.skymap import PlotSkyPatch
 from gammapy.maps import Map
 
 
+# =============================================================================
+# Portable data locations. The inputs below used to be hardcoded to one machine
+# (/home/blessed/..., /mnt/dampe_data/...). They are now resolved from
+# environment variables with repo-relative defaults, so the script runs anywhere.
+# Override any of them, e.g.:
+#   export DMCLUMPS_SKYMAP_DIR=/data/skymaps
+#   export DMCLUMPS_NTUPLE=/data/root/ntuple.root
+# =============================================================================
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_REPO = os.path.dirname(_HERE)
+
+# Directory holding auxiliary all-sky maps (WMAP/DIRBE/Fermi exposure, CLUMPY .fits)
+SKYMAP_DIR   = os.environ.get("DMCLUMPS_SKYMAP_DIR",   os.path.join(_REPO, "data", "skymaps"))
+# Fermi-LAT exposure HEALPix map (full path)
+EXPOSURE_MAP = os.environ.get("DMCLUMPS_EXPOSURE_MAP", os.path.join(SKYMAP_DIR, "exposure_healpix_full_clean_gt20MeV.fits"))
+# CLUMPY HEALPix .fits map: directory + filename
+CLUMPY_FITS_DIR = os.environ.get("DMCLUMPS_CLUMPY_FITS_DIR", SKYMAP_DIR)
+CLUMPY_FITS     = os.environ.get("DMCLUMPS_CLUMPY_FITS",
+    "annihil_seed3120_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_nClumps300_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.fits")
+# ROOT ntuple (converted CLUMPY catalog) read for the NS/clump overlay
+NTUPLE_FILE  = os.environ.get("DMCLUMPS_NTUPLE", os.path.join(_REPO, "data", "root", "100GeV",
+    "ntuple_seed4448_minSubClumpM_m03_MmaxFrac_0.2_minNClumps10_mDM100GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root"))
+# Merged NS-DMclump analysis ROOT file
+MERGED_FILE  = os.environ.get("DMCLUMPS_MERGED", os.path.join(_REPO, "data", "root",
+    "mergedALL_NS-DMclump_mDM100GeV_nside2048_r005_v5.root"))
+# Output directory for plots/tables (created if missing)
+PLOT_DIR     = os.environ.get("DMCLUMPS_PLOT_DIR", "plots_v2")
+os.makedirs(PLOT_DIR, exist_ok=True)
+
 
 def create(args=None):
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -1203,7 +1232,7 @@ npix = np.arange(hp.nside2npix(NSIDE))*1
 
 #You can find nside from the length of the image array by calling
 #nside = hp.npix2nside(npix)
-_path      = '/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/healpix_fit_maps/'
+_path      = SKYMAP_DIR + '/'
 file15     = 'wmap_band_iqumap_r9_7yr_W_v4.fits'
 #file2      = 'exposure_healpix_to_w637_evclass_128_evtype_48_PSF23.fits.gz'
 
@@ -1245,16 +1274,16 @@ file2      = 'DIRBE_ZSMA_8_256.fits'
 
 #extMapFile = 'test_healpix_exposure_rebinned_using_exposure_healpix_full_clean_gt20MeV.fits'
 extMapFile = '12yr_healpix_exposure_rebinned_using_exposure_healpix_to_w637_evclass_128_evtype_48_PSF23.fits.gz'
-_path_clumpy = '/mnt/dampe_data/CLUMPY/output/'
+_path_clumpy = CLUMPY_FITS_DIR + '/'
 #file_clumpy  = 'annihil_seed1332_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.fits'
 #file_clumpy  = 'annihil_seed1332_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM500GeV_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.fits'
 #file_clumpy  = 'annihil_seed4444_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM500GeV_nClumps300_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.fits'
-file_clumpy  = 'annihil_seed3120_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_nClumps300_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.fits'
+file_clumpy  = CLUMPY_FITS
 #_path_clumpy = '/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/DMASS-publish_v1.0/'
 #file_clumpy = 'cmass-dr12v4-S-Reid-full.dat.fits'
 #file_clumpy = 'Y1LSSmask_v2_redlimcut_il22_seeil4.0_4096ring.fits'
 
-exposure_hpx = Map.read('/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/healpix_fit_maps/exposure_healpix_full_clean_gt20MeV.fits')
+exposure_hpx = Map.read(EXPOSURE_MAP)
 #print(events)
 print(exposure_hpx.geom)
 print(exposure_hpx.geom.axes[0])
@@ -1475,7 +1504,7 @@ for i in range(len(column(RA_DEC_deg_dist_kpc,0))):
 #file_name= '/mnt/dampe_data/CLUMPY/root_ntuples/ntuple_annihil_seed3120_minSubClumpM_m07_maxSubClumpM_01_minNClumps10_mDM100GeV_nClumps300_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root'
 
 #file_name= '/mnt/dampe_data/CLUMPY/root_ntuples/ntuple_annihil_seed1332_maxNSubclumps200_minSubClumpM_m07_maxSubClumpM01_mDM100GeV_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.root'
-file_name= '/home/mdeliyer/TestArea/DMclumps/data/root/100GeV/ntuple_seed4448_minSubClumpM_m03_MmaxFrac_0.2_minNClumps10_mDM100GeV_nClumps200_massive_axial_gal2D_LOS0_90_FOVdiameter360.0deg_nside2048.root'
+file_name= NTUPLE_FILE
 
 #file_name= '/mnt/dampe_data/CLUMPY/analysis/mergedALL_NS-DMclump_mDM100GeV_nside2048_r005_v5.root'
 #file_name= '/mnt/dampe_data/CLUMPY/analysis/mergedALL_NS-DMclump_mDM500GeV_nside2048_r005_v5.root'
@@ -1697,7 +1726,7 @@ plt.clf()
 
 
 
-file_name= '/mnt/dampe_data/CLUMPY/analysis/mergedALL_NS-DMclump_mDM100GeV_nside2048_r005_v5.root'
+file_name= MERGED_FILE
 #file_name= '/mnt/dampe_data/CLUMPY/analysis/mergedALL_NS-DMclump_mDM500GeV_nside2048_r005_v5.root'
 tree_1   = uproot.open(file_name)["clumps_1kpc"]
 tree_075 = uproot.open(file_name)["clumps_075kpc"]
@@ -1912,7 +1941,7 @@ t.writeto('plots_v2/CLUMPY_test_table1.fits', overwrite=True)
 
 
 """
-_path_clumpy = '/home/blessed/Documents/_Papers_ToSubmit/_DMStarsClose2GC_Minihalo/python_code/plots_v2/'
+_path_clumpy = CLUMPY_FITS_DIR + '/'
 file_clumpy  = 'CLUMPY_test_table1.fits'
 map2   = hp.read_map(os.path.join(_path_clumpy,file_clumpy))
 

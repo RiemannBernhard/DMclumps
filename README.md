@@ -208,6 +208,28 @@ The Python helpers additionally require `astropy`, `healpy`, `uproot`,
 
 5. **Cross-match clumps ↔ pulsars** — *not yet implemented* (see caveats).
 
+### Configuration (`makeCLUMPY_skyMap.py`)
+
+Input/output locations are resolved from environment variables (repo-relative
+defaults), so the script is portable — set any you need before running:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `DMCLUMPS_NTUPLE` | `data/root/100GeV/ntuple_seed4448_…root` | ROOT ntuple (converted CLUMPY catalog) |
+| `DMCLUMPS_MERGED` | `data/root/mergedALL_…root` | merged NS↔clump analysis ROOT file |
+| `DMCLUMPS_SKYMAP_DIR` | `data/skymaps` | dir of auxiliary all-sky maps (WMAP/DIRBE/Fermi) |
+| `DMCLUMPS_EXPOSURE_MAP` | `<skymap_dir>/exposure_healpix_full_clean_gt20MeV.fits` | Fermi-LAT exposure map |
+| `DMCLUMPS_CLUMPY_FITS_DIR` / `DMCLUMPS_CLUMPY_FITS` | `data/skymaps` / `annihil_…nside2048.fits` | CLUMPY HEALPix `.fits` map |
+| `DMCLUMPS_PLOT_DIR` | `plots_v2` (auto-created) | output directory for figures/tables |
+
+```bash
+DMCLUMPS_NTUPLE=/data/root/my.root DMCLUMPS_PLOT_DIR=out python CLUMPY_utilities/makeCLUMPY_skyMap.py
+```
+
+> Running the full script additionally requires `astrotools`, `gammapy` and
+> `NPTFit` (plus the core `numpy/healpy/uproot/astropy/matplotlib` stack), and the
+> external FITS inputs above.
+
 ---
 
 ## Data formats
