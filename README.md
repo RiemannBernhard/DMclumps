@@ -11,9 +11,12 @@ cross-matched against a pulsar database and used to associate dark-matter clumps
 with individual pulsars along their lines of sight.
 
 > **Project status.** The CLUMPY → ROOT conversion and the supporting
-> coordinate/sky-map tooling are in place. The pulsar ↔ clump **cross-matcher
-> itself is not yet implemented** — `makeCLUMPY_skyMap.py` currently only
-> visualizes the catalog. See [Status & caveats](#status--caveats).
+> coordinate/sky-map tooling are in place. The pulsar ↔ clump **3-D
+> cross-matcher is now implemented** in
+> [`CLUMPY_utilities/crossmatch_pulsars_clumps.py`](CLUMPY_utilities/crossmatch_pulsars_clumps.py)
+> (reads the `.drawn` catalogs directly, ranks pulsars by local DM density, and
+> vets matches with a longitude-scramble false-association control). See
+> [Cross-matching](#cross-matching-clumps--pulsars).
 
 ---
 
@@ -206,7 +209,42 @@ The Python helpers additionally require `astropy`, `healpy`, `uproot`,
 4. **Sky maps.** `makeCLUMPY_skyMap.py` reads the TTree via `uproot` and draws
    HEALPix/Mollweide maps of the clumps with the pulsar list overlaid.
 
-5. **Cross-match clumps ↔ pulsars** — *not yet implemented* (see caveats).
+5. **Cross-match clumps ↔ pulsars** — see [Cross-matching](#cross-matching-clumps--pulsars).
+
+### Cross-matching clumps ↔ pulsars
+
+`CLUMPY_utilities/crossmatch_pulsars_clumps.py` associates each pulsar with the
+dark-matter clump(s) it is embedded in, in **3-D** (Galactic position *and*
+heliocentric distance). It reads the `.drawn` catalog(s) **directly** — not the
+stale ROOT files — and the authoritative NS catalog
+(`NSmass_dist2GC_corr_data_extended_ext.h`, Galactic `l,b,d` + NS mass/radius/
+age) from the sibling `ADM-NS_GWsignal_templ` repo.
+
+```bash
+python3 CLUMPY_utilities/crossmatch_pulsars_clumps.py \
+    --drawn data/raw/100GeV/annihil_seed4448_*.drawn \
+    --rho-thresh 0.4 --alpha 1.0 --scramble 50 --out data/crossmatch
+```
+
+For every pulsar it places both populations in heliocentric Cartesian
+coordinates, evaluates the Einasto profile of every clump at the pulsar offset,
+and reports the **local DM density** (sum and max over clumps) plus the
+density-dominant and geometrically-nearest clumps. Two association criteria:
+
+- **primary (density):** the pulsar sits where some clump's local density
+  exceeds `--rho-thresh` [GeV/cm³] — implemented as a per-clump *density radius*
+  (the analytic Einasto inverse), so it is exact and cheap to scramble;
+- **secondary (tidal):** `d3d < alpha · R_tidal` — a pure geometric membership
+  test that *saturates* (big clumps' tidal spheres blanket the inner Galaxy), so
+  it is reported only for context.
+
+The **false-association rate** is estimated by re-running the density match on
+`--scramble` Galactic-longitude-randomised clump catalogs (the look-elsewhere
+control). Outputs in `--out`: `pulsar_clump_table.csv` (one row per pulsar),
+`associations.csv` (density-match pairs, densest first), `crossmatch_summary.txt`.
+
+> Flag overrides: `--pulsars PATH` (or `$DMCLUMPS_PSR_CATALOG`) for the NS
+> catalog; pass multiple `--drawn` files/globs to combine realizations.
 
 ### Configuration (`makeCLUMPY_skyMap.py`)
 

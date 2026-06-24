@@ -25,3 +25,6 @@ README_discussion.md
 # CLUMPY run outputs
 output/
 apptainer_out/
+
+# cross-matcher generated outputs
+data/crossmatch/
