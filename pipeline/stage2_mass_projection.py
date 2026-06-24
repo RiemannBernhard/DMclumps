@@ -35,6 +35,9 @@ import csv
 import os
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import mtot_vs_mdm_digitized as mtot  # M_total^max(M_DM), Figs 10/11 of PRD 99 063015
+
 # 1 GeV/c^2 in Msun (1 Msun = 1.111172751e57 GeV/c^2), as in the C++ source.
 GEV_TO_MSUN = (1.0 / 1.111172751) * 1e-57
 
@@ -63,6 +66,12 @@ def main(argv=None):
                     help="sigma_DM / sigma_crit")
     ap.add_argument("--time-Gyr", type=float, default=10.0,
                     help="accretion time [Gyr]; per-pulsar age used when > 0")
+    ap.add_argument("--mchi", type=float, default=100.0,
+                    help="DM particle mass [GeV] selecting the M_total(M_DM) "
+                         "curve (snapped to nearest digitized: 1/5/10/50/100/200/500)")
+    ap.add_argument("--y", type=float, default=0.1,
+                    help="DM self-interaction strength: 0.1 (Fig.10 weak) or "
+                         "1000 (Fig.11 strong)")
     ap.add_argument("--primary-only", action="store_true",
                     help="keep only the densest container per pulsar (is_primary)")
     ap.add_argument("--bins", type=int, default=10,
@@ -88,7 +97,7 @@ def main(argv=None):
                    "clump_source", "clump_row", "r_kpc", "Rdelta_kpc",
                    "r_over_Rdelta", "dist_to_edge_kpc", "frac_to_edge",
                    "rho_DM_at_r_GeVcm3", "time_Gyr", "M_acc_Msun",
-                   "f_acc_over_Mpsr"]
+                   "f_acc_over_Mpsr", "M_total_Msun", "dM_total_Msun"]
     data = []
     with open(pairs_csv, "w", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=pair_fields)
@@ -102,6 +111,8 @@ def main(argv=None):
             t = age if age > 0 else args.time_Gyr
             Mpsr = _f(r, "psr_mass_Msun")
             Macc = accreted_mass(rho, args.sigma_ratio, t)
+            Mtot = mtot.mtot_of_mdm(Macc, y=args.y, m_chi_GeV=args.mchi)
+            dMtot = Mtot - mtot.BASELINE_MT
             dist_edge = max(Rd - rk, 0.0)
             frac_edge = max(1.0 - xr, 0.0)
             rec = {
@@ -114,44 +125,51 @@ def main(argv=None):
                 "frac_to_edge": f"{frac_edge:.5g}",
                 "rho_DM_at_r_GeVcm3": f"{rho:.6g}", "time_Gyr": f"{t:.4g}",
                 "M_acc_Msun": f"{Macc:.6g}",
-                "f_acc_over_Mpsr": f"{(Macc / Mpsr if Mpsr > 0 else 0):.6g}"}
+                "f_acc_over_Mpsr": f"{(Macc / Mpsr if Mpsr > 0 else 0):.6g}",
+                "M_total_Msun": f"{Mtot:.4g}", "dM_total_Msun": f"{dMtot:.4g}"}
             w.writerow(rec)
-            data.append((xr, frac_edge, Mpsr, Macc, rho))
+            data.append((xr, frac_edge, Mpsr, Macc, rho, Mtot))
 
     # ---- binned projection vs fractional distance-to-edge --------------------
     # x-axis = frac_to_edge = 1 - r/R_delta  (0 at clump edge, 1 at centre);
     # report mean observed pulsar mass and mean accreted DM mass per bin.
     nb = max(args.bins, 1)
     bins = [[] for _ in range(nb)]
-    for xr, fe, Mpsr, Macc, rho in data:
+    for xr, fe, Mpsr, Macc, rho, Mtot in data:
         k = min(int(fe * nb), nb - 1)
-        bins[k].append((Mpsr, Macc, rho, xr))
+        bins[k].append((Mpsr, Macc, rho, xr, Mtot))
     with open(binned_csv, "w", newline="") as fh:
         w = csv.writer(fh)
         w.writerow(["bin", "frac_to_edge_lo", "frac_to_edge_hi", "n",
                     "mean_r_over_Rdelta", "mean_psr_mass_Msun",
-                    "median_psr_mass_Msun", "mean_M_acc_Msun", "mean_rho_GeVcm3"])
+                    "median_psr_mass_Msun", "mean_M_acc_Msun",
+                    "mean_M_total_Msun", "mean_rho_GeVcm3"])
         for k in range(nb):
             lo, hi = k / nb, (k + 1) / nb
             b = bins[k]
             if not b:
-                w.writerow([k, f"{lo:.3f}", f"{hi:.3f}", 0, "", "", "", "", ""])
+                w.writerow([k, f"{lo:.3f}", f"{hi:.3f}", 0, "", "", "", "", "", ""])
                 continue
-            masses = sorted(m for m, _, _, _ in b)
+            masses = sorted(m for m, _, _, _, _ in b)
             med = masses[len(masses) // 2]
             n = len(b)
             w.writerow([
                 k, f"{lo:.3f}", f"{hi:.3f}", n,
-                f"{sum(x for _, _, _, x in b) / n:.4g}",
-                f"{sum(m for m, _, _, _ in b) / n:.4g}", f"{med:.4g}",
-                f"{sum(a for _, a, _, _ in b) / n:.6g}",
-                f"{sum(r for _, _, r, _ in b) / n:.6g}"])
+                f"{sum(x for _, _, _, x, _ in b) / n:.4g}",
+                f"{sum(m for m, _, _, _, _ in b) / n:.4g}", f"{med:.4g}",
+                f"{sum(a for _, a, _, _, _ in b) / n:.6g}",
+                f"{sum(mt for _, _, _, _, mt in b) / n:.4g}",
+                f"{sum(r for _, _, r, _, _ in b) / n:.6g}"])
 
+    snapped = mtot._nearest_mchi(args.y, args.mchi)
     print(f"[in] {len(rows)} pulsar-clump pairs"
           f"{' (primary only)' if args.primary_only else ''}; "
-          f"sigma_ratio={args.sigma_ratio}, t={args.time_Gyr} Gyr (age where >0)")
-    print(f"[ok] M_acc range: {min(d[3] for d in data):.3g} .. "
+          f"sigma_ratio={args.sigma_ratio}, t={args.time_Gyr} Gyr (age where >0); "
+          f"M_total curve: y={args.y}, m_chi={snapped} GeV")
+    print(f"[ok] M_acc range:   {min(d[3] for d in data):.3g} .. "
           f"{max(d[3] for d in data):.3g} Msun")
+    print(f"[ok] M_total range: {min(d[5] for d in data):.4g} .. "
+          f"{max(d[5] for d in data):.4g} Msun (baseline {mtot.BASELINE_MT})")
     print(f"[ok] per-pair    -> {pairs_csv}")
     print(f"[ok] projection  -> {binned_csv}")
     # show the projection inline (centre -> edge)
