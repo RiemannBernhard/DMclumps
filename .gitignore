@@ -29,6 +29,9 @@ apptainer_out/
 # cross-matcher generated outputs
 data/crossmatch/
 
+# Stage-2 generated tables
+data/stage2/
+
 # clumpy2root build artifact and converted catalogues (large binaries)
 root_io/clumpy2root
 root_io/*.root
