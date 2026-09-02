@@ -35,3 +35,6 @@ data/stage2/
 # clumpy2root build artifact and converted catalogues (large binaries)
 root_io/clumpy2root
 root_io/*.root
+
+# Session scratch notes (not part of the repo)
+README_discussion*.md
