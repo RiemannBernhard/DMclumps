@@ -1,0 +1,156 @@
+#**********************************************************************************************************
+# CLUMPY -g8 galaxy ENSEMBLE manifest -- 100-realization production set
+# --------------------------------------------------------------------------------------------------------
+# One row = one Milky-Way-type galaxy realization drawn with `clumpy -g8`.
+# Same 11-column format as galaxy_ensemble.txt, so slurm/clumpy_g8_ensemble.sbatch
+# reads it unchanged:
+#     MANIFEST=clumpy_config/galaxy_ensemble_100.txt \
+#         sbatch --array=0-99%6 slurm/clumpy_g8_ensemble.sbatch
+#
+# DESIGN -- why this differs from galaxy_ensemble.txt
+# --------------------------------------------------------------------------------------------------------
+# 1. ONE MASS PER SEED.
+#    The Galactic clump draw depends on gSIM_SEED and the clump-population
+#    parameters only. gPP_DM_MASS_GEV does NOT enter it: the same seed run at
+#    100 and 500 GeV produces BYTE-IDENTICAL .drawn catalogues (verified by
+#    checksum on the g7 outputs -- data/raw held 15 files but only 9 distinct
+#    realizations). Pairing every seed across two masses therefore doubled the
+#    cost of the previous grid for zero extra clump statistics.
+#    Only the .fits flux skymaps differ with mass. If you need those, run the
+#    second mass from a SEPARATE manifest and do not count it as a realization.
+#
+# 2. HOMOGENEOUS CLUMP POPULATION.
+#    Every row here uses NCLUMPS=200, MMIN=1e-07, MMAXFRAC=0.01. Rows drawn with
+#    a different subhalo abundance or mass window are a different statistical
+#    population and must not be pooled with these. galaxy_ensemble.txt mixed four
+#    such settings, leaving at most 4 seeds in any one of them.
+#    Put abundance / mass-window variations in a separate systematics manifest.
+#
+# 3. FIXED LINE OF SIGHT.
+#    PSI/THETA set the map centre, not the draw, so they are held at 0/90 to keep
+#    the outputs directly comparable. Vary them only for map-level studies.
+#
+# 4. GALLIST = none THROUGHOUT.
+#    -g8 with an external list injects DSPH / MW-type galaxies into the .drawn
+#    catalogue. Those are not Galactic subhaloes and would contaminate any
+#    pulsar-clump association. Keep the inclination sweep in its own manifest.
+#    (If you do mix them, filter on the `type` branch of the converted ntuple.)
+#
+# 5. 100 REALIZATIONS.
+#    Sized from the measured association rate: ~1 pulsar-clump pair per galaxy
+#    at the R_equdens boundary, so ~100 galaxies give ~100 pairs (~10% Poisson
+#    error). 12 independent galaxies would give ~29%.
+#
+# Seeds are distinct and non-zero (0 = clock-seeded, NOT reproducible).
+# The first three (2671, 4453, 4455) are carried over from galaxy_ensemble.txt,
+# where they appear with exactly this clump configuration. If those rows have
+# already been run, skip the corresponding tasks rather than redrawing them --
+# verify first with:  slurm/preflight_g8.sh --post <output dir>
+# Seeds used by the earlier g7 grid (4448 4450 4452 4454 4456 4457 4459 4462
+# 4465) and by the other galaxy_ensemble.txt configurations are excluded, so no
+# row here can collide with an existing catalogue.
+#
+# Column key: see clumpy_config/galaxy_ensemble.txt
+#*******************************************************************************************************************#
+# ID          SEED   MDM_GEV  NCLUMPS  MMIN     MMAXFR  PSI   THETA  NSIDE  GALLIST  LABEL
+#*******************************************************************************************************************#
+g8ens001     2671   100      200      1e-07    0.01    0     90     2048   none     ens_seed2671_100GeV
+g8ens002     4453   100      200      1e-07    0.01    0     90     2048   none     ens_seed4453_100GeV
+g8ens003     4455   100      200      1e-07    0.01    0     90     2048   none     ens_seed4455_100GeV
+g8ens004     5525   100      200      1e-07    0.01    0     90     2048   none     ens_seed5525_100GeV
+g8ens005     6932   100      200      1e-07    0.01    0     90     2048   none     ens_seed6932_100GeV
+g8ens006     1334   100      200      1e-07    0.01    0     90     2048   none     ens_seed1334_100GeV
+g8ens007     2450   100      200      1e-07    0.01    0     90     2048   none     ens_seed2450_100GeV
+g8ens008     9821   100      200      1e-07    0.01    0     90     2048   none     ens_seed9821_100GeV
+g8ens009     6769   100      200      1e-07    0.01    0     90     2048   none     ens_seed6769_100GeV
+g8ens010     1274   100      200      1e-07    0.01    0     90     2048   none     ens_seed1274_100GeV
+g8ens011     8333   100      200      1e-07    0.01    0     90     2048   none     ens_seed8333_100GeV
+g8ens012     8745   100      200      1e-07    0.01    0     90     2048   none     ens_seed8745_100GeV
+g8ens013     8490   100      200      1e-07    0.01    0     90     2048   none     ens_seed8490_100GeV
+g8ens014     8443   100      200      1e-07    0.01    0     90     2048   none     ens_seed8443_100GeV
+g8ens015     6117   100      200      1e-07    0.01    0     90     2048   none     ens_seed6117_100GeV
+g8ens016     9958   100      200      1e-07    0.01    0     90     2048   none     ens_seed9958_100GeV
+g8ens017     4235   100      200      1e-07    0.01    0     90     2048   none     ens_seed4235_100GeV
+g8ens018     8695   100      200      1e-07    0.01    0     90     2048   none     ens_seed8695_100GeV
+g8ens019     3814   100      200      1e-07    0.01    0     90     2048   none     ens_seed3814_100GeV
+g8ens020     9626   100      200      1e-07    0.01    0     90     2048   none     ens_seed9626_100GeV
+g8ens021     2757   100      200      1e-07    0.01    0     90     2048   none     ens_seed2757_100GeV
+g8ens022     2062   100      200      1e-07    0.01    0     90     2048   none     ens_seed2062_100GeV
+g8ens023     1536   100      200      1e-07    0.01    0     90     2048   none     ens_seed1536_100GeV
+g8ens024     4204   100      200      1e-07    0.01    0     90     2048   none     ens_seed4204_100GeV
+g8ens025     7162   100      200      1e-07    0.01    0     90     2048   none     ens_seed7162_100GeV
+g8ens026     6621   100      200      1e-07    0.01    0     90     2048   none     ens_seed6621_100GeV
+g8ens027     7300   100      200      1e-07    0.01    0     90     2048   none     ens_seed7300_100GeV
+g8ens028     7191   100      200      1e-07    0.01    0     90     2048   none     ens_seed7191_100GeV
+g8ens029     8794   100      200      1e-07    0.01    0     90     2048   none     ens_seed8794_100GeV
+g8ens030     4689   100      200      1e-07    0.01    0     90     2048   none     ens_seed4689_100GeV
+g8ens031     6180   100      200      1e-07    0.01    0     90     2048   none     ens_seed6180_100GeV
+g8ens032     7660   100      200      1e-07    0.01    0     90     2048   none     ens_seed7660_100GeV
+g8ens033     6102   100      200      1e-07    0.01    0     90     2048   none     ens_seed6102_100GeV
+g8ens034     4958   100      200      1e-07    0.01    0     90     2048   none     ens_seed4958_100GeV
+g8ens035     6176   100      200      1e-07    0.01    0     90     2048   none     ens_seed6176_100GeV
+g8ens036     7887   100      200      1e-07    0.01    0     90     2048   none     ens_seed7887_100GeV
+g8ens037     2652   100      200      1e-07    0.01    0     90     2048   none     ens_seed2652_100GeV
+g8ens038     1543   100      200      1e-07    0.01    0     90     2048   none     ens_seed1543_100GeV
+g8ens039     9085   100      200      1e-07    0.01    0     90     2048   none     ens_seed9085_100GeV
+g8ens040     3880   100      200      1e-07    0.01    0     90     2048   none     ens_seed3880_100GeV
+g8ens041     7949   100      200      1e-07    0.01    0     90     2048   none     ens_seed7949_100GeV
+g8ens042     3661   100      200      1e-07    0.01    0     90     2048   none     ens_seed3661_100GeV
+g8ens043     4371   100      200      1e-07    0.01    0     90     2048   none     ens_seed4371_100GeV
+g8ens044     7432   100      200      1e-07    0.01    0     90     2048   none     ens_seed7432_100GeV
+g8ens045     5871   100      200      1e-07    0.01    0     90     2048   none     ens_seed5871_100GeV
+g8ens046     1058   100      200      1e-07    0.01    0     90     2048   none     ens_seed1058_100GeV
+g8ens047     4461   100      200      1e-07    0.01    0     90     2048   none     ens_seed4461_100GeV
+g8ens048     3958   100      200      1e-07    0.01    0     90     2048   none     ens_seed3958_100GeV
+g8ens049     1613   100      200      1e-07    0.01    0     90     2048   none     ens_seed1613_100GeV
+g8ens050     7599   100      200      1e-07    0.01    0     90     2048   none     ens_seed7599_100GeV
+g8ens051     4541   100      200      1e-07    0.01    0     90     2048   none     ens_seed4541_100GeV
+g8ens052     1901   100      200      1e-07    0.01    0     90     2048   none     ens_seed1901_100GeV
+g8ens053     3687   100      200      1e-07    0.01    0     90     2048   none     ens_seed3687_100GeV
+g8ens054     4351   100      200      1e-07    0.01    0     90     2048   none     ens_seed4351_100GeV
+g8ens055     2294   100      200      1e-07    0.01    0     90     2048   none     ens_seed2294_100GeV
+g8ens056     9617   100      200      1e-07    0.01    0     90     2048   none     ens_seed9617_100GeV
+g8ens057     8735   100      200      1e-07    0.01    0     90     2048   none     ens_seed8735_100GeV
+g8ens058     5153   100      200      1e-07    0.01    0     90     2048   none     ens_seed5153_100GeV
+g8ens059     9197   100      200      1e-07    0.01    0     90     2048   none     ens_seed9197_100GeV
+g8ens060     3771   100      200      1e-07    0.01    0     90     2048   none     ens_seed3771_100GeV
+g8ens061     3681   100      200      1e-07    0.01    0     90     2048   none     ens_seed3681_100GeV
+g8ens062     3712   100      200      1e-07    0.01    0     90     2048   none     ens_seed3712_100GeV
+g8ens063     5723   100      200      1e-07    0.01    0     90     2048   none     ens_seed5723_100GeV
+g8ens064     8381   100      200      1e-07    0.01    0     90     2048   none     ens_seed8381_100GeV
+g8ens065     3129   100      200      1e-07    0.01    0     90     2048   none     ens_seed3129_100GeV
+g8ens066     7730   100      200      1e-07    0.01    0     90     2048   none     ens_seed7730_100GeV
+g8ens067     3116   100      200      1e-07    0.01    0     90     2048   none     ens_seed3116_100GeV
+g8ens068     8099   100      200      1e-07    0.01    0     90     2048   none     ens_seed8099_100GeV
+g8ens069     2323   100      200      1e-07    0.01    0     90     2048   none     ens_seed2323_100GeV
+g8ens070     4617   100      200      1e-07    0.01    0     90     2048   none     ens_seed4617_100GeV
+g8ens071     5903   100      200      1e-07    0.01    0     90     2048   none     ens_seed5903_100GeV
+g8ens072     1029   100      200      1e-07    0.01    0     90     2048   none     ens_seed1029_100GeV
+g8ens073     2128   100      200      1e-07    0.01    0     90     2048   none     ens_seed2128_100GeV
+g8ens074     5439   100      200      1e-07    0.01    0     90     2048   none     ens_seed5439_100GeV
+g8ens075     8938   100      200      1e-07    0.01    0     90     2048   none     ens_seed8938_100GeV
+g8ens076     9539   100      200      1e-07    0.01    0     90     2048   none     ens_seed9539_100GeV
+g8ens077     7011   100      200      1e-07    0.01    0     90     2048   none     ens_seed7011_100GeV
+g8ens078     9281   100      200      1e-07    0.01    0     90     2048   none     ens_seed9281_100GeV
+g8ens079     8579   100      200      1e-07    0.01    0     90     2048   none     ens_seed8579_100GeV
+g8ens080     6128   100      200      1e-07    0.01    0     90     2048   none     ens_seed6128_100GeV
+g8ens081     8650   100      200      1e-07    0.01    0     90     2048   none     ens_seed8650_100GeV
+g8ens082     4825   100      200      1e-07    0.01    0     90     2048   none     ens_seed4825_100GeV
+g8ens083     1205   100      200      1e-07    0.01    0     90     2048   none     ens_seed1205_100GeV
+g8ens084     4579   100      200      1e-07    0.01    0     90     2048   none     ens_seed4579_100GeV
+g8ens085     1011   100      200      1e-07    0.01    0     90     2048   none     ens_seed1011_100GeV
+g8ens086     9642   100      200      1e-07    0.01    0     90     2048   none     ens_seed9642_100GeV
+g8ens087     8965   100      200      1e-07    0.01    0     90     2048   none     ens_seed8965_100GeV
+g8ens088     7487   100      200      1e-07    0.01    0     90     2048   none     ens_seed7487_100GeV
+g8ens089     4824   100      200      1e-07    0.01    0     90     2048   none     ens_seed4824_100GeV
+g8ens090     1151   100      200      1e-07    0.01    0     90     2048   none     ens_seed1151_100GeV
+g8ens091     4841   100      200      1e-07    0.01    0     90     2048   none     ens_seed4841_100GeV
+g8ens092     6380   100      200      1e-07    0.01    0     90     2048   none     ens_seed6380_100GeV
+g8ens093     9311   100      200      1e-07    0.01    0     90     2048   none     ens_seed9311_100GeV
+g8ens094     7018   100      200      1e-07    0.01    0     90     2048   none     ens_seed7018_100GeV
+g8ens095     3041   100      200      1e-07    0.01    0     90     2048   none     ens_seed3041_100GeV
+g8ens096     6803   100      200      1e-07    0.01    0     90     2048   none     ens_seed6803_100GeV
+g8ens097     1572   100      200      1e-07    0.01    0     90     2048   none     ens_seed1572_100GeV
+g8ens098     3014   100      200      1e-07    0.01    0     90     2048   none     ens_seed3014_100GeV
+g8ens099     9127   100      200      1e-07    0.01    0     90     2048   none     ens_seed9127_100GeV
+g8ens100     4279   100      200      1e-07    0.01    0     90     2048   none     ens_seed4279_100GeV

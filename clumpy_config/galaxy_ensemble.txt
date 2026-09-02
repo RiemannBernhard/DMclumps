@@ -1,0 +1,92 @@
+#**********************************************************************************************************
+# CLUMPY -g8 galaxy ENSEMBLE manifest
+# --------------------------------------------------------------------------------------------------------
+# One row = one Milky-Way-type galaxy realization to be drawn with `clumpy -g8`.
+# The batch driver clumpy_g8_ensemble.sbatch reads this file and runs the row whose
+# (1-based) data-line index equals SLURM_ARRAY_TASK_ID+1, passing each column as a
+# --gXXX override on top of clumpy_config/clumpy_params_g8.txt. This reproduces the
+# publicly released *.drawn catalogues (/data/data/CLUMPY/data/*drawn) and lets you
+# grow a statistically significant set of galaxies differing in:
+#   - realization (SEED)          -> a fresh random draw of the whole clump population
+#   - DM particle mass (MDM_GEV)  -> paper uses 100 and 500 GeV, chi chi -> b bbar
+#   - clump census   (NCLUMPS)    -> gMW_SUBS_N_INM1M2, # massive clumps in [M1,M2]
+#   - clump mass floor (MMIN)     -> gDM_SUBS_MMIN  (m07 = 1e-7, m08 = 1e-8 Msol ...)
+#   - clump mass ceiling (MMAXFRAC)-> gDM_SUBS_MMAXFRAC (0.01, 0.2 ... of host mass)
+#   - map orientation (PSI,THETA) -> l.o.s. map centre; appears as LOS<PSI>_<THETA>
+#   - injected galaxy (GALLIST)   -> which external MW-type galaxy (inclination) to add
+#   - resolution (NSIDE)          -> gSIM_HEALPIX_NSIDE (2048 in the paper)
+#
+# GALLIST column (selects the external list halo added by -g8 via gLIST_HALOES):
+#   none     -> --gLIST_HALOES=-1  : NO external object; pure MW Galactic clump draw.
+#                                    Use this to reproduce the released clump catalogues.
+#   default  -> (no override)      : use the param-file default clumpy_config/list_haloes.txt
+#                                    (MW + the DSPH/CLUSTER samples + ALL 6 MWtype galaxies).
+#   <path>   -> --gLIST_HALOES=<path> : one specific per-inclination file, e.g.
+#                                    clumpy_config/list_MWtype_i45.txt  (see list_MWtype_*.txt).
+#              Available inclinations: i00 (face-on), i30, i45, i60, i90 (edge-on),
+#              i45pa60 (i=45 deg with position angle 60 deg).
+#
+# Notes
+#  - Lines starting with # and blank lines are ignored.
+#  - Columns are whitespace-separated; keep the column count fixed (11 columns).
+#  - Use NCLUMPS = -1 / MMIN = -1 / MMAXFRAC = -1 to keep the param-file default.
+#  - CLUMPY builds the output *.drawn name itself from these values, so matching a
+#    row to a released file is a direct look-up of seed/masses/LOS/nside.
+#  - The number of --array tasks must cover the data-line count (see driver header).
+#
+# Column key:
+#  ID     : short human tag for the realization / output subfolder
+#  SEED   : gSIM_SEED               (integer; 0 = clock-seeded, NOT reproducible)
+#  MDM_GEV: gPP_DM_MASS_GEV         [GeV]
+#  NCLUMPS: gMW_SUBS_N_INM1M2       (-1 = keep default 150)
+#  MMIN   : gDM_SUBS_MMIN           [Msol] (-1 = keep default 1e-6)
+#  MMAXFR : gDM_SUBS_MMAXFRAC       [-]    (-1 = keep default 0.01)
+#  PSI    : gSIM_PSI_OBS_DEG        [deg]  (l.o.s. / map-centre longitude)
+#  THETA  : gSIM_THETA_OBS_DEG      [deg]  (l.o.s. / map-centre latitude)
+#  NSIDE  : gSIM_HEALPIX_NSIDE      [-]
+#  GALLIST: external galaxy list    (none | default | clumpy_config/list_MWtype_*.txt)
+#  LABEL  : free note (no spaces)
+#
+#*******************************************************************************************************************#
+# ID          SEED   MDM_GEV  NCLUMPS  MMIN     MMAXFR  PSI   THETA  NSIDE  GALLIST                          LABEL
+#*******************************************************************************************************************#
+# --- Paper reference realization (spherical MW halo, seed 1332), two masses, two views ---
+#     GALLIST=none reproduces the released Galactic clump catalogues (no external galaxy added).
+gal01_ref     2671   100      200      1e-07    0.01    180   0      2048   none                             ref_spherical_LOS180_0_100GeV
+gal02_ref     2671   500      200      1e-07    0.01    180   0      2048   none                             ref_spherical_LOS180_0_500GeV
+gal03_ref     2671   100      200      1e-07    0.01    0     90     2048   none                             ref_spherical_LOS0_90_100GeV
+gal04_ref     2671   500      200      1e-07    0.01    0     90     2048   none                             ref_spherical_LOS0_90_500GeV
+# --- Ensemble: released production seeds, mDM = 100 & 500 GeV, LOS0_90 view (no external galaxy) ---
+gal05         3130   100      -1       1e-07    0.01    0     90     2048   none                             prod_seed3130_100GeV
+gal06         3130   500      -1       1e-07    0.01    0     90     2048   none                             prod_seed3130_500GeV
+gal07         1108   100      -1       1e-07    0.01    0     90     2048   none                             prod_seed1108_100GeV
+gal08         1108   500      -1       1e-07    0.01    0     90     2048   none                             prod_seed1108_500GeV
+gal09         2213   100      -1       1e-07    0.01    0     90     2048   none                             prod_seed2213_100GeV
+gal10         2213   500      -1       1e-07    0.01    0     90     2048   none                             prod_seed2213_500GeV
+gal11         3344   100      -1       1e-07    0.01    0     90     2048   none                             prod_seed3344_100GeV
+gal12         3344   500      -1       1e-07    0.01    0     90     2048   none                             prod_seed3344_500GeV
+gal13         9122   100      300      1e-07    0.01    0     90     2048   none                             prod_seed9122_100GeV_nc300
+gal14         9122   500      300      1e-07    0.01    0     90     2048   none                             prod_seed9122_500GeV_nc300
+# --- Ensemble: "massive" high-count realizations (nClumps = 300) ---
+gal15         5198   100      300      1e-07    0.01    0     90     2048   none                             prod_seed598_100GeV_nc300
+gal16         7361   100      300      1e-07    0.01    0     90     2048   none                             prod_seed7361_500GeV_nc300
+gal17         9383   100      300      1e-07    0.01    0     90     2048   none                             prod_seed9383_100GeV_massive
+gal18         9383   500      300      1e-07    0.01    0     90     2048   none                             prod_seed9383_500GeV_massive
+# --- Ensemble: alternative mass window (m08 floor, MmaxFrac 0.2, nClumps 200) ---
+gal19         4113   100      200      1e-08    0.2     0     90     2048   none                             prod_seed4113_m08_100GeV_frac02
+gal20         4113   500      200      1e-08    0.2     0     90     2048   none                             prod_seed4113_m08_500GeV_frac02
+# --- Fresh seeds to extend the ensemble (match the g7-array seed family) ---
+gal21         4453   100      200      1e-07    0.01    0     90     2048   none                             new_seed4453_100GeV
+gal22         4453   500      200      1e-07    0.01    0     90     2048   none                             new_seed4453_500GeV
+gal23         4455   100      200      1e-07    0.01    0     90     2048   none                             new_seed4455_100GeV
+gal24         4455   500      200      1e-07    0.01    0     90     2048   none                             new_seed4455_500GeV
+# --- Inclination sweep: fixed MW realization (seed 2671, 100 GeV), one oriented MW-type ---
+#     galaxy injected per row (face-on -> edge-on). Isolates the galaxy-inclination effect.
+gal25_i00     2671   100      200      1e-07    0.01    0     90     2048   clumpy_config/list_MWtype_i00.txt      incl_faceon_100GeV
+gal26_i30     2671   100      200      1e-07    0.01    0     90     2048   clumpy_config/list_MWtype_i30.txt      incl_30deg_100GeV
+gal27_i45     2671   100      200      1e-07    0.01    0     90     2048   clumpy_config/list_MWtype_i45.txt      incl_45deg_100GeV
+gal28_i60     2671   100      200      1e-07    0.01    0     90     2048   clumpy_config/list_MWtype_i60.txt      incl_60deg_100GeV
+gal29_i90     2671   100      200      1e-07    0.01    0     90     2048   clumpy_config/list_MWtype_i90.txt      incl_edgeon_100GeV
+gal30_i45pa60 2671   100      200      1e-07    0.01    0     90     2048   clumpy_config/list_MWtype_i45pa60.txt  incl_45deg_pa60_100GeV
+# --- All galaxies at once (full default list): the whole oriented-galaxy field in one map ---
+gal31_all     2671   100      200      1e-07    0.01    0     90     2048   default                          incl_all_galaxies_100GeV

@@ -1,0 +1,8 @@
+# CLUMPY v3.0 formatted halo list -- single Milky-Way-type galaxy (one inclination).
+# Selected per ensemble task via the GALLIST column of galaxy_ensemble.txt, which the
+# driver passes as --gLIST_HALOES=<this file>. Same MW Einasto halo as clumpy_params_g8.txt
+# (alpha=0.17, rs=15.14 kpc, Rdelta=260 kpc, rhos=rho(rs)=3.14e6 Msol/kpc3). Inclination is
+# the 2nd triaxiality Euler angle rot2 (0=face-on, 90=edge-on); rot1=position angle.
+#                  [OBJECT LOCATION AND SIZE]                |             DM DISTRIBUTION (RHO_TOT)                    [TRIAXIALITY]                        #
+# Name           Type       l      b      d     z   Rdelta  |     rhos      rs      prof.   #1   #2   #3      IsTriaxial  a    b    c    rot1  rot2  rot3    #
+MWtype_i30       GALAXY    150    50   1000    -1    260      3.14e6    15.14   kEINASTO  0.17  3.0  1.0      1        1.0  0.8  0.6    0.0  30.0   0.0    # i=30 deg
