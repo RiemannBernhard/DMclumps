@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Batch-convert the CLUMPY .drawn catalogues under /data into ROOT ntuples.
+set -euo pipefail
+
+./clumpy2root /data/5388733/annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.drawn  -o clumpy_5388733_annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048_extra.root
+./clumpy2root /data/5389085_0/annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.drawn  -o clumpy_5389085-0_annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048_extra.root
+./clumpy2root /data/5389085_10/annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.drawn  -o clumpy_5389085-10_annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048_extra.root
+./clumpy2root /data/5389085_11/annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.drawn  -o clumpy_5389085-11_annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048_extra.root
+./clumpy2root /data/5389085_1/annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.drawn  -o clumpy_5389085-1_annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048_extra.root
+./clumpy2root /data/5389085_2/annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.drawn  -o clumpy_5389085-2_annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048_extra.root
+./clumpy2root /data/5389085_3/annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.drawn  -o clumpy_5389085-3_annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048_extra.root
+./clumpy2root /data/5389085_4/annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.drawn  -o clumpy_5389085-4_annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048_extra.root
+./clumpy2root /data/5389085_5/annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.drawn  -o clumpy_5389085-5_annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048_extra.root
+./clumpy2root /data/5389085_6/annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.drawn  -o clumpy_5389085-6_annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048_extra.root
+./clumpy2root /data/5389085_7/annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.drawn  -o clumpy_5389085-7_annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048_extra.root
+./clumpy2root /data/5389085_8/annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.drawn  -o clumpy_5389085-8_annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048_extra.root
+./clumpy2root /data/5389085_9/annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048.drawn  -o clumpy_5389085-9_annihil_gal2D_LOS180_0_FOVdiameter360.0deg_nside2048_extra.root
