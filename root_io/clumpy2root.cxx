@@ -355,8 +355,10 @@ const BranchDoc kBranchDoc[] = {
 {"is_extended", "bool", "clump is wider than alpha_int",
  "True when the clump's angular radius exceeds alpha_int, i.e. its tabulated J "
  "undercounts its emission. True for 86% of clumps in these catalogues."},
-{"tid_valid", "bool", "Rtid is physical, not the solver floor",
- "FALSE when Rtid sits exactly at rs*1e-3 -- the lower bracket of CLUMPY's "
+{"tid_valid", "bool", "Rtid is physical, finite and not the solver floor",
+ "FALSE when Rtid is non-finite (CLUMPY writes a literal 'inf' for a few "
+ "clumps, which would otherwise contain every test point and make Lann and "
+ "J_tot infinite), or when it sits exactly at rs*1e-3 -- the lower bracket of CLUMPY's "
  "tidal-radius solver rather than a converged physical radius. This affects 14.2% of "
  "rows (250345/1762617), all with Mdelta below ~90 Msol, and their Mtid comes out "
  "~1e-7 x Mdelta. ALWAYS require tid_valid before using Rtid, Mtid, c_tid, f_strip, "
@@ -637,7 +639,13 @@ int main(int argc, char **argv)
          // 14% of the rows in these catalogues carry Rtid pinned exactly at
          // rs*1e-3 -- the solver's lower bracket, not a physical tidal radius.
          // Flag them rather than silently propagating the value.
-         tid_valid = !(c_tid > 0. && std::fabs(c_tid / 1e-3 - 1.0) < 0.01);
+         // Two distinct failure modes: a non-finite Rtid/Mtid (CLUMPY writes a
+         // literal "inf" for a handful of clumps, which would otherwise contain
+         // every test point and poison Lann/J_tot), and Rtid pinned at the
+         // solver's lower bracket rs*1e-3.
+         const bool tidFinite = std::isfinite(b_Rtid) && std::isfinite(b_Mtid);
+         tid_valid = tidFinite &&
+                     !(c_tid > 0. && std::fabs(c_tid / 1e-3 - 1.0) < 0.01);
          if (!tid_valid) ++nTidFloor;
 
          const double Rlum = tid_valid ? b_Rtid : b_Rdelta;
