@@ -28,3 +28,6 @@ apptainer_out/
 
 # cross-matcher generated outputs
 data/crossmatch/
+
+# Stage-2 generated tables
+data/stage2/

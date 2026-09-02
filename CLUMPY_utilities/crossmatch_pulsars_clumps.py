@@ -75,7 +75,10 @@ MSUNKPC3_TO_GEVCM3 = 37.96e-9  # rho: Msun/kpc^3 -> GeV/cm^3 (matches converter)
 PSR = dict(ra=0, dec=1, b=2, l=3, dist=4, dgc=5,
            mass=8, mass_ep=9, mass_em=10, radius_km=14, age_Gyr=17, f0=19)
 # Column indices in the CLUMPY .drawn rows (0-based).
-CL = dict(l=2, b=3, d=4, Rdelta=6, rhos=7, rs=8, alpha=10, Mtid=16, Rtid=17, Dgal=20)
+# Layout: Name Type long lat d z Rdelta rhos rs prof #1 #2 #3 J J/Jcont
+#         Mdelta Mtid Rtid Mequidens Requidens Dgal
+CL = dict(l=2, b=3, d=4, Rdelta=6, rhos=7, rs=8, alpha=10,
+          Mdelta=15, Mtid=16, Rtid=17, Mequidens=18, Requidens=19, Dgal=20)
 
 
 # --------------------------------------------------------------------------- IO
@@ -133,7 +136,8 @@ def read_drawn(paths):
     """
     cols_l, cols_b, cols_d = [], [], []
     cols_Rtid, cols_rhos, cols_rs, cols_alpha = [], [], [], []
-    cols_Mtid, cols_Dgal = [], []
+    cols_Rdelta, cols_Mtid, cols_Mdelta = [], [], []
+    cols_Mequidens, cols_Requidens, cols_Dgal = [], [], []
     src_tag, row_idx = [], []
     nmax = max(CL.values())
     for p in paths:
@@ -150,14 +154,18 @@ def read_drawn(paths):
                     l = float(f[CL["l"]]); b = float(f[CL["b"]]); d = float(f[CL["d"]])
                     Rtid = float(f[CL["Rtid"]]); rhos = float(f[CL["rhos"]])
                     rs = float(f[CL["rs"]]); alpha = float(f[CL["alpha"]])
-                    Mtid = float(f[CL["Mtid"]]); Dgal = float(f[CL["Dgal"]])
+                    Rdelta = float(f[CL["Rdelta"]]); Mtid = float(f[CL["Mtid"]])
+                    Mdelta = float(f[CL["Mdelta"]]); Mequidens = float(f[CL["Mequidens"]])
+                    Requidens = float(f[CL["Requidens"]]); Dgal = float(f[CL["Dgal"]])
                 except ValueError:
                     continue
                 n += 1
                 cols_l.append(l); cols_b.append(b); cols_d.append(d)
                 cols_Rtid.append(Rtid); cols_rhos.append(rhos)
                 cols_rs.append(rs); cols_alpha.append(alpha)
-                cols_Mtid.append(Mtid); cols_Dgal.append(Dgal)
+                cols_Rdelta.append(Rdelta); cols_Mtid.append(Mtid)
+                cols_Mdelta.append(Mdelta); cols_Mequidens.append(Mequidens)
+                cols_Requidens.append(Requidens); cols_Dgal.append(Dgal)
                 src_tag.append(base); row_idx.append(n)
     if not cols_l:
         raise ValueError("no clumps parsed from: " + ", ".join(paths))
@@ -166,7 +174,9 @@ def read_drawn(paths):
         l=np.array(cols_l), b=np.array(cols_b), d=np.array(cols_d),
         Rtid=np.array(cols_Rtid), rhos=np.array(cols_rhos),
         rs=np.array(cols_rs), alpha=np.array(cols_alpha),
-        Mtid=np.array(cols_Mtid), Dgal=np.array(cols_Dgal),
+        Rdelta=np.array(cols_Rdelta), Mtid=np.array(cols_Mtid),
+        Mdelta=np.array(cols_Mdelta), Mequidens=np.array(cols_Mequidens),
+        Requidens=np.array(cols_Requidens), Dgal=np.array(cols_Dgal),
         source=src_tag, row=row_idx,
     )
 
